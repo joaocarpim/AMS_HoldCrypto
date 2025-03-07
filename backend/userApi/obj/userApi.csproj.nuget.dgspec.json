@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\0031432412025\\AMS_HoldCrypto\\backend\\userApi\\userApi.csproj": {}
+    "C:\\Users\\0031432412025\\FATEC\\AMS_HoldCrypto\\backend\\userApi\\userApi.csproj": {}
   },
   "projects": {
-    "C:\\Users\\0031432412025\\AMS_HoldCrypto\\backend\\userApi\\userApi.csproj": {
+    "C:\\Users\\0031432412025\\FATEC\\AMS_HoldCrypto\\backend\\userApi\\userApi.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\0031432412025\\AMS_HoldCrypto\\backend\\userApi\\userApi.csproj",
+        "projectUniqueName": "C:\\Users\\0031432412025\\FATEC\\AMS_HoldCrypto\\backend\\userApi\\userApi.csproj",
         "projectName": "userApi",
-        "projectPath": "C:\\Users\\0031432412025\\AMS_HoldCrypto\\backend\\userApi\\userApi.csproj",
+        "projectPath": "C:\\Users\\0031432412025\\FATEC\\AMS_HoldCrypto\\backend\\userApi\\userApi.csproj",
         "packagesPath": "C:\\Users\\0031432412025\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\0031432412025\\AMS_HoldCrypto\\backend\\userApi\\obj\\",
+        "outputPath": "C:\\Users\\0031432412025\\FATEC\\AMS_HoldCrypto\\backend\\userApi\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
@@ -58,13 +58,19 @@
               "target": "Package",
               "version": "[9.0.2, )"
             },
+            "Microsoft.EntityFrameworkCore.Design": {
+              "include": "Runtime, Build, Native, ContentFiles, Analyzers, BuildTransitive",
+              "suppressParent": "All",
+              "target": "Package",
+              "version": "[9.0.2, )"
+            },
             "Microsoft.EntityFrameworkCore.Sqlite": {
               "target": "Package",
               "version": "[9.0.2, )"
             },
             "Swashbuckle.AspNetCore": {
               "target": "Package",
-              "version": "[7.2.0, )"
+              "version": "[7.3.1, )"
             }
           },
           "imports": [
