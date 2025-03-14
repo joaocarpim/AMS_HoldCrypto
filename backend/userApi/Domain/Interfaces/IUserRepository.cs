@@ -5,4 +5,5 @@ public interface IUserRepository
     List<User> GetAll();
     void Update(User user);
     void Delete(int id);
+    User? GetByEmail(string email);
 }

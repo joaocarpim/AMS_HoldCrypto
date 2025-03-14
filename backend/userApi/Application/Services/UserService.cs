@@ -9,7 +9,8 @@ public class UserService : IUserService
 
      public UserDTO RegisterUser(UserDTO userDto)
     {
-        // var hashedPassword = BCrypt.Net.BCrypt.HashPassword(userDto.Password);
+        var hashedPassword = BCrypt.Net.BCrypt.HashPassword(userDto.Password);
+        
 
         var user = new User 
         {
@@ -17,7 +18,7 @@ public class UserService : IUserService
             Email = userDto.Email, 
             Phone = userDto.Phone,
             Address = userDto.Address,
-            Password = userDto.Password,
+            Password = hashedPassword,
             Photo = userDto.Photo
         };
         _userRepository.Add(user);
@@ -63,7 +64,7 @@ public class UserService : IUserService
 
     public UserDTO? UpdateUser(int id, UserDTO userDto)
     {
-        // var hashedPassword = BCrypt.Net.BCrypt.HashPassword(userDto.Password);
+        var hashedPassword = BCrypt.Net.BCrypt.HashPassword(userDto.Password);
         var user = _userRepository.GetById(id);
         if (user == null) return null;
         
@@ -71,7 +72,7 @@ public class UserService : IUserService
         user.Email = userDto.Email;
         user.Phone = userDto.Phone;
         user.Address = userDto.Address;
-        user.Password = userDto.Password;
+        user.Password = hashedPassword;
         user.Photo = userDto.Photo;
         
         _userRepository.Update(user);
@@ -93,6 +94,22 @@ public class UserService : IUserService
         if (user == null) return false;
         _userRepository.Delete(id);
         return true;
+    }
+
+    public UserDTO? ValidateUser(string email, string password)
+    {
+        var user = _userRepository.GetByEmail(email);
+        if (user == null || !BCrypt.Net.BCrypt.Verify(password, user.Password))
+            return null;
+
+        return new UserDTO
+        {
+            Name = user.Name,
+            Email = user.Email,
+            Phone = user.Phone,
+            Address = user.Address,
+            Photo = user.Photo
+        };
     }
 
 }

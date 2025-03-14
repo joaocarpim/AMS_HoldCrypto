@@ -5,4 +5,5 @@ public interface IUserService
     List<UserDTO> GetAllUsers();
     UserDTO? UpdateUser(int id, UserDTO userDto);
     bool DeleteUser(int id);
+    UserDTO? ValidateUser(string email, string password);
 }
