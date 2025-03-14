@@ -19,7 +19,7 @@ Ele oferece uma interface intuitiva para armazenar e visualizar as moedas que vo
 🧑‍💻 Tecnologias Usadas
 
 - Visual Studio: IDE utilizada para o desenvolvimento do projeto.
-- C#: Linguagem principal utilizada no backend.
+- C#: Linguagem principal utilizada no backend...
 
 
 
