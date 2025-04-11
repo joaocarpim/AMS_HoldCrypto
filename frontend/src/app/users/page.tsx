@@ -1,6 +1,6 @@
-"use client"
+"use client";
 import { useEffect, useState } from "react";
-import userService, {User} from "@/services/userService";
+import userService, { User } from "@/services/userService";
 
 export default function UsersPage() {
     const [users, setUsers] = useState<User[]>([]);
@@ -28,5 +28,5 @@ export default function UsersPage() {
                 ))}
             </ul>
         </div>
-    )
+    );
 }
