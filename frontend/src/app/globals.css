@@ -2,7 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
-/* https://colorhunt.co/palette/27374d526d829db2bfdde6ed */
+/* Cores da Binance */
 @layer utilities {
     .bg-primary { background-color: #27374D; }
     .bg-secondary { background-color: #526D82; }
@@ -15,7 +15,6 @@
 }
 
 @layer components {
-    
     .header {
         @apply fixed top-0 left-0 w-full h-16 bg-primary shadow-md flex items-center
                 px-6 justify-between;
@@ -26,7 +25,7 @@
     }
 }
 
-/* css reset */
+/* CSS Reset */
 body {
     margin: 0;
     padding: 0;

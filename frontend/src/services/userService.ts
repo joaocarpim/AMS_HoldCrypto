@@ -1,38 +1,28 @@
+import axios from 'axios';
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
 export interface User {
-    id?: number;
-    name: string;
-    email: string;
-    phone: string;
-    address: string;
-    password?: string;
-    photo: string;
+  id: string;
+  name: string;
+  email: string;
 }
 
-const fakeUsers: User[] = [
-    {
-        id: 1,
-        name: "João da Silva",
-        email: "joao@silva.com",
-        phone: "(15)9998877-6655",
-        address: "Rua da Bromélias, 199",
-        password: "senhaHashed",
-        photo: "user.png"
-    },
-    {
-        id: 2,
-        name: "José da Silva",
-        email: "joao@silva.com",
-        phone: "(15)9998877-6655",
-        address: "Rua da Bromélias, 199",
-        password: "senhaHashed",
-        photo: "user.png"
-    }
-];
+export async function getUsers(): Promise<User[]> {
+  try {
+    const response = await axios.get(`${API_URL}/users`);
+    return response.data as User[]; 
+  } catch (error) {
+    console.error('Erro ao buscar usuários:', error);
+    throw new Error('Erro ao buscar usuários.');
+  }
+}
 
-const userService = {
-    async getUsers(): Promise<User[]> {
-        return fakeUsers;
-    }
-};
-
-export default userService;
+export async function deleteUser(id: string): Promise<void> {
+  try {
+    await axios.delete(`${API_URL}/users/${id}`);
+  } catch (error) {
+    console.error('Erro ao deletar usuário:', error);
+    throw new Error('Erro ao deletar usuário.');
+  }
+}

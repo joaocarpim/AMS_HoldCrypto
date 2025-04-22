@@ -1,21 +1,33 @@
+'use client'; 
+
+import Link from 'next/link';
+import { useAuth } from '@/app/context/AuthContext';
+
 interface HeaderProps {
-    siteName?: string;
-    pageName: string;
+  pageName?: string;
 }
 
-const Header: React.FC<HeaderProps> = ({siteName="Trade Holding AMS", pageName}) => {
-    return(
-        <div className="header">
+const Header = ({ pageName = 'AMS Trade' }: HeaderProps) => {
+  const { isAuthenticated, logout } = useAuth();
 
-            <div className="text-light text-lg font-bold">{siteName}</div>
-            <div className="text-accent text-2xl font-medium">{pageName}</div>
-            <div className="flex items-center gap-4">
-                <button className="btn">Tema</button>
-                <button className="btn">Perfil</button>
-            </div>
-        
-        </div>
-    )
-}
+  return (
+    <header className="bg-gray-800 text-white p-4">
+      <div className="container mx-auto flex justify-between items-center">
+        <h1>{pageName}</h1>
+        <nav>
+          {isAuthenticated ? (
+            <button onClick={logout} className="text-red-500">
+              Logout
+            </button>
+          ) : (
+            <Link href="/login" className="text-blue-500">
+              Login
+            </Link>
+          )}
+        </nav>
+      </div>
+    </header>
+  );
+};
 
 export default Header;
