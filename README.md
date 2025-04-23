@@ -22,6 +22,15 @@ Ele oferece uma interface intuitiva para armazenar e visualizar as moedas que vo
 - C#: Linguagem principal utilizada no backend...
 
 
+Status do Workflow ⚙️
+
+![DevOps CI - Status](https://github.com/DanielFatec1911/AMS_HoldCrypto/actions/workflows/meu-workflow.yml/badge.svg)
+
+Esse badge mostra o status do workflow de integração contínua (CI) do projeto. 
+Sempre que houver alterações na branch `main`, o workflow é executado automaticamente para garantir que o projeto está funcionando corretamente.
+
+
+
 
 
 
