@@ -1,33 +1,22 @@
+/* Arquivo: styles/global.css */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 /* Cores da Binance */
 @layer utilities {
-    .bg-primary { background-color: #27374D; }
-    .bg-secondary { background-color: #526D82; }
-    .bg-accent { background-color: #9DB2BF; }
-    .bg-light { background-color: #DDE6ED; }
-    .text-primary { color: #27374D; }
-    .text-secondary { color: #526D82; }
-    .text-accent { color: #9DB2BF; }
-    .text-light { color: #DDE6ED; }
+  .bg-primary { background-color: #27374D; }
+  .bg-secondary { background-color: #526D82; }
+  .bg-accent { background-color: #9DB2BF; }
+  .bg-light { background-color: #DDE6ED; }
+  .text-primary { color: #27374D; }
+  .text-secondary { color: #526D82; }
+  .text-accent { color: #9DB2BF; }eu
+  .text-light { color: #DDE6ED; }
 }
 
 @layer components {
-    .header {
-        @apply fixed top-0 left-0 w-full h-16 bg-primary shadow-md flex items-center
-                px-6 justify-between;
-    }
-
-    .btn {
-        @apply p-2 bg-secondary text-light rounded-md;
-    }
-}
-
-/* CSS Reset */
-body {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
+  .header {
+    @apply fixed top-0 left-0 w-full h-16 bg-primary shadow-md flex items-center justify-between px-6;
+  }
 }

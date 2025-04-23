@@ -1,43 +1,45 @@
+
 import axios from 'axios';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
-// Obter todas as carteiras do usuário
-export const getWallets = async () => {
+export interface Wallet {
+  id: number;
+  currency: string;
+  balance: number;
+}
+
+export const getWallets = async (): Promise<Wallet[]> => {
   const token = localStorage.getItem('token');
   const response = await axios.get(`${API_URL}/api/wallets`, {
     headers: { Authorization: `Bearer ${token}` },
   });
-  return response.data;
+  return response.data as Wallet[]; 
 };
 
-// Criar uma nova carteira
-export const createWallet = async (currency: string, balance: number) => {
+export const createWallet = async (currency: string, balance: number): Promise<Wallet> => {
   const token = localStorage.getItem('token');
   const response = await axios.post(
     `${API_URL}/api/wallets`,
     { currency, balance },
     { headers: { Authorization: `Bearer ${token}` } }
   );
-  return response.data;
+  return response.data as Wallet; 
 };
 
-// Atualizar o saldo de uma carteira
-export const updateWallet = async (id: number, balance: number) => {
+export const updateWallet = async (id: number, balance: number): Promise<Wallet> => {
   const token = localStorage.getItem('token');
   const response = await axios.put(
     `${API_URL}/api/wallets/${id}`,
     { balance },
     { headers: { Authorization: `Bearer ${token}` } }
   );
-  return response.data;
+  return response.data as Wallet; 
 };
 
-// Excluir uma carteira
-export const deleteWallet = async (id: number) => {
+export const deleteWallet = async (id: number): Promise<void> => {
   const token = localStorage.getItem('token');
-  const response = await axios.delete(`${API_URL}/api/wallets/${id}`, {
+  await axios.delete(`${API_URL}/api/wallets/${id}`, {
     headers: { Authorization: `Bearer ${token}` },
   });
-  return response.data;
 };
