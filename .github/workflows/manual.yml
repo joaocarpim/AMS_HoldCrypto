@@ -1,18 +1,14 @@
-name: Greet Person
+name: Workflow DevOps - Projeto Corretora
 
 on:
-  workflow_dispatch:
-    inputs:
-      name:
-        description: 'Person to greet'
-        default: 'World'
-        required: true
-        type: string
+  push:
+    branches:
+      - main
 
 jobs:
-  greet:
+  mostrar-trabalho:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Send greeting
-        run: echo "Hello ${{ inputs.name }}"
+      - name: Exibir mensagem
+        run: echo "✅ Workflow executado com sucesso! DevOps presente no projeto. 💻🚀"
