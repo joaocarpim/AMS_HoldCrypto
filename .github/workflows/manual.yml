@@ -11,4 +11,4 @@ jobs:
 
     steps:
       - name: Exibir mensagem
-        run: echo "✅ Workflow executado com sucesso! DevOps presente no projeto. 💻🚀"
+        run: echo "Workflow executado com sucesso! DevOps presente no projeto."
