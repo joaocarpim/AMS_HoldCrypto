@@ -1,11 +1,9 @@
-const path = require('path');
-
+// Arquivo: next.config.js
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  webpack: (config) => {
-    config.resolve.alias['@'] = path.resolve(__dirname, 'src');
-    return config;
-  },
-};
-
-module.exports = nextConfig;
+    reactStrictMode: true,
+    swcMinify: true,
+    // Outras configurações específicas do seu projeto
+  };
+  
+  module.exports = nextConfig;
