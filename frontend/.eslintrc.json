@@ -1,3 +1,15 @@
 {
-  "extends": ["next", "next/core-web-vitals"]
+  "extends": "next/core-web-vitals",
+  "overrides": [
+    {
+      "files": ["next.config.js", "postcss.config.js"],
+      "env": {
+        "node": true
+      },
+      "rules": {
+        "import/no-unresolved": "off",
+        "node/no-missing-require": "off"
+      }
+    }
+  ]
 }

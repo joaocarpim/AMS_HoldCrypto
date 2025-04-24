@@ -1,4 +1,5 @@
 public class AuthResponseDTO
 {
-    public string Token { get; set; }
+    // Solução: Adicionar valor padrão para a propriedade não anulável
+    public string Token { get; set; } = string.Empty;
 }
