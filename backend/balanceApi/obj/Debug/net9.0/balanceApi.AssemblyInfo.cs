@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("balanceApi")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+801453fb9ec28c2cef7e9bd2dde22b3c559c604f")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+11b032860642e897abb8255c8f6c92adc6e72ad1")]
 [assembly: System.Reflection.AssemblyProductAttribute("balanceApi")]
 [assembly: System.Reflection.AssemblyTitleAttribute("balanceApi")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
