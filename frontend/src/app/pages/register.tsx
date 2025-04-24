@@ -1,6 +1,5 @@
-// Arquivo: app/pages/register.tsx
-'use client';
-import { useRouter } from 'next/navigation';
+// Arquivo: src/app/pages/register.tsx
+import { useRouter } from 'next/router';
 import { useState } from 'react';
 import { useAuth } from '@/app/context/AuthContext';
 
@@ -20,31 +19,31 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="flex justify-center items-center h-screen bg-gray-900 text-white">
-      <form onSubmit={handleSubmit} className="bg-gray-800 p-8 rounded-lg shadow-md w-96 space-y-4">
-        <h1 className="text-2xl font-bold text-center">Registrar</h1>
+    <div className="p-8 bg-black-primary text-yellow-primary min-h-screen flex justify-center items-center">
+      <form onSubmit={handleSubmit} className="w-full max-w-md space-y-4 p-8 bg-black-primary rounded-lg shadow-lg border border-yellow-primary">
+        <h1 className="text-3xl font-bold mb-6 text-center">Registrar</h1>
         <input
           type="text"
           value={formData.name}
           onChange={(e) => setFormData({ ...formData, name: e.target.value })}
           placeholder="Nome"
-          className="w-full p-2 bg-gray-700 text-white rounded"
+          className="input"
         />
         <input
           type="email"
           value={formData.email}
           onChange={(e) => setFormData({ ...formData, email: e.target.value })}
           placeholder="Email"
-          className="w-full p-2 bg-gray-700 text-white rounded"
+          className="input"
         />
         <input
           type="password"
           value={formData.password}
           onChange={(e) => setFormData({ ...formData, password: e.target.value })}
           placeholder="Senha"
-          className="w-full p-2 bg-gray-700 text-white rounded"
+          className="input"
         />
-        <button type="submit" className="w-full bg-green-500 py-2 rounded-md text-white font-semibold hover:bg-green-600">
+        <button type="submit" className="btn w-full">
           Registrar
         </button>
       </form>

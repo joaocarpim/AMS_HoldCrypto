@@ -1,34 +1,45 @@
-'use client';
-import { useEffect, useState } from 'react';
-import { getWallets } from '@/services/walletService';
-import WalletList from '@/services/WalletList';
 
-export interface Wallet {
-  id: number;
-  currency: string;
-  balance: number;
+'use client';
+
+import { useEffect, useState } from 'react';
+import { getUsers, deleteUser } from '@/services/userService';
+import UserList from '@/components/common/UserList';
+
+export interface User {
+  id: string;
+  name: string;
+  email: string;
 }
 
 export default function DashboardPage() {
-  const [wallets, setWallets] = useState<Wallet[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
 
   useEffect(() => {
-    fetchWallets();
+    fetchUsers();
   }, []);
 
-  const fetchWallets = async () => {
+  const fetchUsers = async () => {
     try {
-      const data: Wallet[] = await getWallets();
-      setWallets(data);
+      const data = await getUsers();
+      setUsers(data);
     } catch (error) {
-      console.error('Erro ao buscar carteiras:', error);
+      console.error('Erro ao buscar usuários:', error);
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    try {
+      await deleteUser(id);
+      fetchUsers();
+    } catch (error) {
+      console.error('Erro ao excluir usuário:', error);
     }
   };
 
   return (
-    <div className="p-8 bg-gray-900 text-white min-h-screen">
-      <h1 className="text-3xl font-bold mb-6">Dashboard</h1>
-      <WalletList wallets={wallets} />
+    <div>
+      <h1>Dashboard</h1>
+      <UserList users={users} onDelete={handleDelete} />
     </div>
   );
 }
