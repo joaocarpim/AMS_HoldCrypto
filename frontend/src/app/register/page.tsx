@@ -3,7 +3,7 @@
 import React from "react";
 import UserForm from "@/app/components/UserForm";
 import { UserFormValues } from "@/app/types/UserFormValues";
-import { registerUser } from "@/app/utils/api";
+
 
   
 
@@ -13,7 +13,7 @@ import Footer from "@/app/components/Footer";
 const RegisterPage = () => {
   const handleSubmit = async (values: UserFormValues) => {
     try {
-      const response = await fetch("http://localhost:5294/api/auth/register", {
+      const response = await fetch("http://localhost:5294/api/User", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

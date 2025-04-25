@@ -4,11 +4,16 @@ import React, { useState } from "react";
 import { UserFormValues } from "@/app/types/UserFormValues";
 
 interface UserFormProps {
-  initialValues?: UserFormValues; // Para edição ou valores iniciais
+  initialValues?: UserFormValues; //Para edição ou valores iniciais
   onSubmit: (values: UserFormValues) => void;
+  buttonLabel?: string;
 }
 
-const UserForm: React.FC<UserFormProps> = ({ initialValues, onSubmit }) => {
+const UserForm: React.FC<UserFormProps> = ({
+  initialValues,
+  onSubmit,
+  buttonLabel,
+}) => {
   const [values, setValues] = useState<UserFormValues>(
     initialValues || {
       name: "",
@@ -55,7 +60,12 @@ const UserForm: React.FC<UserFormProps> = ({ initialValues, onSubmit }) => {
     <form onSubmit={handleSubmit} className="space-y-6">
       {[
         { label: "Nome", id: "name", type: "text", placeholder: "Seu nome" },
-        { label: "Email", id: "email", type: "email", placeholder: "Seu email" },
+        {
+          label: "Email",
+          id: "email",
+          type: "email",
+          placeholder: "Seu email",
+        },
         {
           label: "Telefone",
           id: "phone",
@@ -82,7 +92,10 @@ const UserForm: React.FC<UserFormProps> = ({ initialValues, onSubmit }) => {
         },
       ].map(({ label, id, type, placeholder }) => (
         <div key={id}>
-          <label htmlFor={id} className="block text-sm font-medium text-gray-700">
+          <label
+            htmlFor={id}
+            className="block text-sm font-medium text-gray-700"
+          >
             {label}
           </label>
           <input
@@ -103,7 +116,7 @@ const UserForm: React.FC<UserFormProps> = ({ initialValues, onSubmit }) => {
         type="submit"
         className="w-full bg-yellow-500 hover:bg-yellow-600 text-black font-bold py-3 rounded-lg transition duration-300"
       >
-        Registrar
+        {buttonLabel || "Registrar"}
       </button>
     </form>
   );

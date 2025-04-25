@@ -1,37 +1,32 @@
-"use client";
+'use client';
 
-import React, { useState } from "react";
-import { useRouter } from "next/navigation";
-import Header from "@/app/components/Header";
+import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import Header from '@/app/components/Header';
+import axios from 'axios';
 
-export default function Login() {
+export default function LoginPage() {
   const router = useRouter();
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError("");
+    setError('');
 
     try {
-      const res = await fetch("http://localhost:5294/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
-      });
+      const response = await axios.post('/api/auth/login', { email, password });
 
-      if (res.ok) {
-        const data = await res.json();
-        localStorage.setItem("token", data.token);
-        router.push("/users");
-      } else {
-        const errorData = await res.json();
-        setError(errorData.message || "Erro no login");
-      }
-    } catch (err) {
+      const token = response.data.token;
+      localStorage.setItem('token', token);
+
+      
+      
+      router.push('/users');
+    } catch (err: any) {
       console.error(err);
-      setError("Erro na conexão, tente novamente!");
+      setError(err.response?.data?.message || 'Erro ao fazer login');
     }
   };
 
@@ -43,7 +38,7 @@ export default function Login() {
           <h2 className="text-3xl font-bold text-center text-gray-900 mb-6">
             Faça seu Login
           </h2>
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleLogin} className="space-y-6">
             <div>
               <label htmlFor="email" className="block text-sm font-semibold text-gray-600">
                 Email
@@ -53,7 +48,7 @@ export default function Login() {
                 id="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="mt-1 w-full px-4 py-3 border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                className="mt-1 w-full px-4 py-3 border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-yellow-400 text-black"
                 required
               />
             </div>
@@ -66,7 +61,7 @@ export default function Login() {
                 id="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="mt-1 w-full px-4 py-3 border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                className="mt-1 w-full px-4 py-3 border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-yellow-400 text-black"
                 required
               />
             </div>
