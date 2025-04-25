@@ -1,103 +1,108 @@
-using System.Linq;
-
 public class UserService : IUserService
 {
-    private readonly UserDbContext _context;
+    private readonly IUserRepository _userRepository;
 
-    public UserService(UserDbContext context)
+    public UserService(IUserRepository userRepository)
     {
-        _context = context;
+        _userRepository = userRepository;
     }
 
-    public UserDTO RegisterUser(UserDTO userDto)
+     public UserDTO RegisterUser(UserDTO userDto)
     {
-        var user = new User
+        var hashedPassword = BCrypt.Net.BCrypt.HashPassword(userDto.Password);
+        
+
+        var user = new User 
         {
-            Name = userDto.Name,
-            Email = userDto.Email,
+            Name = userDto.Name, 
+            Email = userDto.Email, 
             Phone = userDto.Phone,
             Address = userDto.Address,
-            Password = BCrypt.Net.BCrypt.HashPassword(userDto.Password),
+            Password = hashedPassword,
             Photo = userDto.Photo
         };
-
-        _context.Users.Add(user);
-        _context.SaveChanges();
+        _userRepository.Add(user);
 
         return new UserDTO
         {
-            Id = user.Id,
             Name = user.Name,
             Email = user.Email,
             Phone = user.Phone,
             Address = user.Address,
+            Password = user.Password,
             Photo = user.Photo
         };
     }
 
     public UserDTO? GetUserDetails(int id)
     {
-        var user = _context.Users.Find(id);
-        if (user == null) return null;
-
-        return new UserDTO
-        {
-            Id = user.Id,
-            Name = user.Name,
+        var user = _userRepository.GetById(id);
+        return user != null ? new UserDTO 
+        { 
+            Name = user.Name, 
             Email = user.Email,
             Phone = user.Phone,
             Address = user.Address,
             Photo = user.Photo
-        };
+        } : null;
     }
 
     public List<UserDTO> GetAllUsers()
     {
-        return _context.Users.Select(user => new UserDTO
+        return _userRepository.GetAll().Select(user => new UserDTO
         {
             Id = user.Id,
             Name = user.Name,
             Email = user.Email,
             Phone = user.Phone,
             Address = user.Address,
+            Password = user.Password,
             Photo = user.Photo
         }).ToList();
     }
 
     public UserDTO? UpdateUser(int id, UserDTO userDto)
     {
-        var user = _context.Users.Find(id);
+        var hashedPassword = BCrypt.Net.BCrypt.HashPassword(userDto.Password);
+        var user = _userRepository.GetById(id);
         if (user == null) return null;
-
+        
         user.Name = userDto.Name;
         user.Email = userDto.Email;
         user.Phone = userDto.Phone;
         user.Address = userDto.Address;
-        user.Password = BCrypt.Net.BCrypt.HashPassword(userDto.Password);
+        user.Password = hashedPassword;
         user.Photo = userDto.Photo;
-
-        _context.SaveChanges();
-        return GetUserDetails(id);
+        
+        _userRepository.Update(user);
+        
+        return new UserDTO
+        {
+            Name = user.Name,
+            Email = user.Email,
+            Phone = user.Phone,
+            Address = user.Address,
+            Password = user.Password,
+            Photo = user.Photo
+        };
     }
 
     public bool DeleteUser(int id)
     {
-        var user = _context.Users.Find(id);
+        var user = _userRepository.GetById(id);
         if (user == null) return false;
-
-        _context.Users.Remove(user);
-        _context.SaveChanges();
+        _userRepository.Delete(id);
         return true;
     }
 
     public UserDTO? ValidateUser(string email, string password)
     {
-        var user = _context.Users.FirstOrDefault(u => u.Email == email);
-        if (user == null || !BCrypt.Net.BCrypt.Verify(password, user.Password)) return null;
+        var user = _userRepository.GetByEmail(email);
+        if (user == null || !BCrypt.Net.BCrypt.Verify(password, user.Password))
+            return null;
 
         return new UserDTO
         {
-            Id = user.Id,
             Name = user.Name,
             Email = user.Email,
             Phone = user.Phone,
@@ -105,4 +110,5 @@ public class UserService : IUserService
             Photo = user.Photo
         };
     }
+
 }

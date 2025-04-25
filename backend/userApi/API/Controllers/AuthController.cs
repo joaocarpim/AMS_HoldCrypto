@@ -21,12 +21,6 @@ public class AuthController : ControllerBase
     [HttpPost("login")]
     public IActionResult Login([FromBody] LoginDTO loginDto)
     {
-        // Verifica se os dados fornecidos estão completos
-        if (loginDto == null || string.IsNullOrEmpty(loginDto.Email) || string.IsNullOrEmpty(loginDto.Password))
-        {
-            return BadRequest(new { message = "Dados de login incompletos." });
-        }
-
         var user = _userService.ValidateUser(loginDto.Email, loginDto.Password);
         if (user == null)
         {
@@ -37,41 +31,37 @@ public class AuthController : ControllerBase
         return Ok(new AuthResponseDTO { Token = token });
     }
 
+
     [Authorize]
     [HttpGet("profile")]
     public IActionResult GetProfile()
     {
-        // Protege contra referências nulas
-        var email = User?.Identity?.Name;
-        if (string.IsNullOrEmpty(email))
-        {
-            return NotFound(new { message = "Perfil não encontrado." });
-        }
+        var email = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+    var name = User.FindFirst(ClaimTypes.Name)?.Value;
 
-        return Ok(new { message = "Rota protegida acessada!", user = email });
+    return Ok(new { user = name, email });
     }
 
     private string GenerateJwtToken(UserDTO user)
     {
-        // Garantia de que a chave JWT está configurada
         var jwtKey = _configuration["Jwt:Key"];
         if (string.IsNullOrEmpty(jwtKey))
         {
-            throw new Exception("JWT Key está faltando no appsettings.json");
+            throw new Exception("JWT Key is missing in appsettings.json");
         }
 
         var key = Encoding.ASCII.GetBytes(jwtKey);
         var claims = new List<Claim>
         {
-            new Claim(ClaimTypes.NameIdentifier, user.Email ?? string.Empty), // Protege contra email nulo
-            new Claim(ClaimTypes.Name, user.Name ?? string.Empty), // Protege contra nome nulo
-            new Claim(ClaimTypes.Role, "Administrator") // Define um papel padrão
+            new Claim(ClaimTypes.NameIdentifier, user.Email),
+            new Claim(ClaimTypes.Name, user.Name),
+            new Claim(ClaimTypes.Role, "Administrator")
         };
 
         var tokenDescriptor = new SecurityTokenDescriptor
         {
             Subject = new ClaimsIdentity(claims),
-            Expires = DateTime.UtcNow.AddMinutes(int.TryParse(_configuration["Jwt:ExpirationMinutes"], out var expiration) ? expiration : 60), // Expiração flexível
+            Expires = DateTime.UtcNow.AddHours(2),
             SigningCredentials = new SigningCredentials(
                 new SymmetricSecurityKey(key),
                 SecurityAlgorithms.HmacSha256Signature
@@ -82,4 +72,6 @@ public class AuthController : ControllerBase
         var token = tokenHandler.CreateToken(tokenDescriptor);
         return tokenHandler.WriteToken(token);
     }
+
+    
 }

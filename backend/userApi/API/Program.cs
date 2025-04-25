@@ -1,54 +1,67 @@
 using Microsoft.OpenApi.Models;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.OpenApi.Models;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
+var configuration = builder.Configuration;
+var key = Encoding.ASCII.GetBytes(configuration["Jwt:Key"] ?? throw new ArgumentNullException("Jwt:Key is missing"));
 
-// Carregar chave JWT
-var jwtKey = builder.Configuration["Jwt:Key"] ?? Environment.GetEnvironmentVariable("Jwt__Key");
-if (string.IsNullOrEmpty(jwtKey))
+builder.Services.AddAuthentication(options =>
 {
-    throw new Exception("A chave JWT (Jwt:Key) não foi configurada no appsettings.json ou nas variáveis de ambiente.");
-}
-
-// Configuração de CORS
-builder.Services.AddCors(options =>
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+.AddJwtBearer(options =>
 {
-    options.AddDefaultPolicy(policy =>
+    options.RequireHttpsMetadata = false;
+    options.SaveToken = true;
+    options.TokenValidationParameters = new TokenValidationParameters
     {
-        policy.WithOrigins("http://localhost:3000") // Permitir requisições do frontend
-              .AllowAnyHeader()
-              .AllowAnyMethod();
-    });
+        ValidateIssuerSigningKey = true,
+        IssuerSigningKey = new SymmetricSecurityKey(key),
+        ValidateIssuer = false,
+        ValidateAudience = false
+    };
 });
 
-// Adicionar controllers e serviços
-builder.Services.AddControllers();
-builder.Services.AddEndpointsApiExplorer();
 
-// Configuração do Swagger para documentação da API
-builder.Services.AddSwaggerGen(options =>
+builder.Services.AddCors(options =>
+    {
+        options.AddPolicy("AllowFrontEnd",
+            builder =>
+            {
+                builder.WithOrigins("http://localhost:3000")
+                    .AllowAnyMethod()
+                    .AllowAnyHeader();
+            });
+    });
+
+// Configuração de injeção de dependências
+builder.Services.AddControllers();
+builder.Services.AddEndpointsApiExplorer();builder.Services.AddSwaggerGen(options =>
 {
-    options.SwaggerDoc("v1", new OpenApiInfo
+    options.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo
     {
         Title = "User API",
         Version = "v1",
         Description = "API para gerenciamento de usuários",
-        Contact = new OpenApiContact
+        Contact = new Microsoft.OpenApi.Models.OpenApiContact
         {
-            Name = "Andre Souza",
-            Email = "andre.souza99@fatec.sp.gov.br"
+            Name = "AMS_HoldCrypto",
+            Email = "null"
         }
     });
 });
 
-// Adicionando serviços customizados (ex.: IUserService -> UserService)
 builder.Services.AddApplicationServices();
 
-// Configuração da aplicação
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
 {
-    // Configuração do Swagger no modo de desenvolvimento
     app.UseSwagger();
     app.UseSwaggerUI(options =>
     {
@@ -57,11 +70,9 @@ if (app.Environment.IsDevelopment())
     });
 }
 
-// Configurações de pipeline
+app.UseCors("AllowFrontEnd");
 app.UseHttpsRedirection();
-app.UseCors(); // Middleware de CORS para permitir chamadas externas
+app.UseAuthentication();
 app.UseAuthorization();
-app.MapControllers(); // Mapeia os endpoints de controllers
-
-// Executar a aplicação
+app.MapControllers();
 app.Run();
