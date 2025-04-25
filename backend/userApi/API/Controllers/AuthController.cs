@@ -36,8 +36,10 @@ public class AuthController : ControllerBase
     [HttpGet("profile")]
     public IActionResult GetProfile()
     {
-        var email = User.Identity.Name;
-        return Ok(new { message = "Rota protegida acessada!", user = email });
+        var email = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+    var name = User.FindFirst(ClaimTypes.Name)?.Value;
+
+    return Ok(new { user = name, email });
     }
 
     private string GenerateJwtToken(UserDTO user)

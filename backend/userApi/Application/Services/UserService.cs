@@ -43,7 +43,6 @@ public class UserService : IUserService
             Email = user.Email,
             Phone = user.Phone,
             Address = user.Address,
-            Password = user.Password,
             Photo = user.Photo
         } : null;
     }

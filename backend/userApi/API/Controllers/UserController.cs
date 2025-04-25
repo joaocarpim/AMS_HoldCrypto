@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 
 [ApiController]
 [Route("api/[controller]")]
@@ -26,6 +27,7 @@ public class UserController : ControllerBase
     }
 
     [HttpGet]
+    [Authorize]
     public IActionResult GetAllUsers()
     {
         var users = _userService.GetAllUsers();
