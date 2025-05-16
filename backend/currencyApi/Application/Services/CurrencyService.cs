@@ -34,6 +34,7 @@ public class CurrencyService : ICurrencyService
         var currency = _currencyRepository.GetById(id);
         return currency != null ? new CurrencyDTO 
         { 
+            Id = currency.Id,
             Name = currency.Name, 
             Description = currency.Description,
             Status = currency.Status,

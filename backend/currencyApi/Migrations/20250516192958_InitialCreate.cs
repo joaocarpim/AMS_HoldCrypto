@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace currencyApi.Migrations
 {
     /// <inheritdoc />
-    public partial class CreateCurrencyTable : Migration
+    public partial class InitialCreate : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -19,6 +19,7 @@ namespace currencyApi.Migrations
                         .Annotation("Sqlite:Autoincrement", true),
                     Name = table.Column<string>(type: "TEXT", nullable: false),
                     Description = table.Column<string>(type: "TEXT", nullable: false),
+                    Status = table.Column<bool>(type: "INTEGER", nullable: false),
                     Backing = table.Column<int>(type: "INTEGER", nullable: false)
                 },
                 constraints: table =>

@@ -27,8 +27,7 @@ public class HistoryController : ControllerBase
     }
 
     [HttpGet]
-    [Authorize]
-    public IActionResult GetAllHistorys()
+    public IActionResult GetAllHistory()
     {
         var historys = _historyService.GetAllHistory();
         return Ok(historys);

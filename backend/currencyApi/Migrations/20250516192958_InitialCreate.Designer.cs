@@ -10,8 +10,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace currencyApi.Migrations
 {
     [DbContext(typeof(CurrencyDbContext))]
-    [Migration("20250509204144_CreateHistoryTable")]
-    partial class CreateHistoryTable
+    [Migration("20250516192958_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

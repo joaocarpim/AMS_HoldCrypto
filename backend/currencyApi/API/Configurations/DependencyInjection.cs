@@ -6,6 +6,8 @@ public static class DependencyInjection
     {
         services.AddScoped<ICurrencyRepository, CurrencyRepository>();
         services.AddScoped<ICurrencyService, CurrencyService>();
+        services.AddScoped<IHistoryRepository, HistoryRepository>();
+        services.AddScoped<IHistoryService, HistoryService>();
         services.AddDbContext<CurrencyDbContext>(options =>
             options.UseSqlite("Data Source=currencydb.sqlite"));
         return services;

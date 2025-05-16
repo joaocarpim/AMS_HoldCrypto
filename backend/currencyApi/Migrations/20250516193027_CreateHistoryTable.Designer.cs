@@ -10,8 +10,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace currencyApi.Migrations
 {
     [DbContext(typeof(CurrencyDbContext))]
-    [Migration("20250509193931_CreateCurrencyTable")]
-    partial class CreateCurrencyTable
+    [Migration("20250516193027_CreateHistoryTable")]
+    partial class CreateHistoryTable
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -35,6 +35,9 @@ namespace currencyApi.Migrations
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("TEXT");
+
+                    b.Property<bool>("Status")
+                        .HasColumnType("INTEGER");
 
                     b.HasKey("Id");
 
