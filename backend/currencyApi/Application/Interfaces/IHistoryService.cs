@@ -1,6 +1,6 @@
 public interface IHistoryService{
 
-    HistoryDTO RegisterHistory(HistoryDTO historyDto);
+    HistoryDTO RegisterHistory(HistoryDTO historyDto, int currencyId);
 
     List<HistoryDTO> GetAllHistory();
     

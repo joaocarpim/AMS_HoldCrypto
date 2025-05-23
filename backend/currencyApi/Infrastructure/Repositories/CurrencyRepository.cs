@@ -1,3 +1,5 @@
+using Microsoft.EntityFrameworkCore;
+
 public class CurrencyRepository : ICurrencyRepository
 {
     private readonly CurrencyDbContext _context;
@@ -12,9 +14,11 @@ public class CurrencyRepository : ICurrencyRepository
         _context.SaveChanges();
     }
 
-    public Currency? GetById(int id) => _context.Currency.Find(id);
+    public Currency? GetById(int id) => _context.Currency.Include(c => c.Histories)
+    .FirstOrDefault(c => c.Id == id);
 
-    public List<Currency> GetAll() => _context.Currency.ToList();
+    public List<Currency> GetAll() => _context.Currency?.Include(c => c.Histories)
+    .ToList() ?? new List<Currency>();
 
     public void Update(Currency currency)
     {

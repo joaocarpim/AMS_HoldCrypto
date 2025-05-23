@@ -1,19 +1,24 @@
 public class HistoryService : IHistoryService
 {
     private readonly IHistoryRepository _historyRepository;
+    private readonly ICurrencyService _currencyService;
 
-    public HistoryService(IHistoryRepository historyRepository)
+    public HistoryService(IHistoryRepository historyRepository, ICurrencyService currencyService)
     {
         _historyRepository = historyRepository;
+        _currencyService = currencyService;
     }
 
-    public HistoryDTO RegisterHistory(HistoryDTO historyDto)
+    public HistoryDTO RegisterHistory(HistoryDTO historyDto, int currencyId)
     {
+        var currency = _currencyService.GetCurrencyById(currencyId);
+
         var history = new History
         {
             Datetime = historyDto.Datetime,
             Price = historyDto.Price,
-            CurrencyId = historyDto.CurrencyId,
+            CurrencyId = currency.Id,
+            Currency = currency
         };
 
         _historyRepository.Add(history);
@@ -24,7 +29,7 @@ public class HistoryService : IHistoryService
             Datetime = history.Datetime,
             Price = history.Price,
             CurrencyId = history.CurrencyId,
-            Currency = history.Currency
+           
         };
     }
 
@@ -37,7 +42,7 @@ public class HistoryService : IHistoryService
             Datetime = history.Datetime,
             Price = history.Price,
             CurrencyId = history.CurrencyId,
-            Currency = history.Currency
+            
         } : null;
     }
 
@@ -49,7 +54,7 @@ public class HistoryService : IHistoryService
             Datetime = history.Datetime,
             Price = history.Price,
             CurrencyId = history.CurrencyId,
-            Currency = history.Currency
+            
         }).ToList();
     }
 
@@ -70,7 +75,7 @@ public class HistoryService : IHistoryService
             Datetime = history.Datetime,
             Price = history.Price,
             CurrencyId = history.CurrencyId,
-            Currency = history.Currency
+            
         };
     }
 

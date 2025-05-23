@@ -14,7 +14,6 @@ public class CurrencyService : ICurrencyService
         {
             Name = currencyDto.Name, 
             Description = currencyDto.Description, 
-            Status = currencyDto.Status,
             Backing = currencyDto.Backing,
         };
         _currencyRepository.Add(currency);
@@ -29,31 +28,68 @@ public class CurrencyService : ICurrencyService
         };
     }
 
+    public Currency? GetCurrencyById(int id)
+    {
+        return _currencyRepository.GetById(id);
+    }
+
+
     public CurrencyDTO? GetCurrencyDetails(int id)
     {
         var currency = _currencyRepository.GetById(id);
-        return currency != null ? new CurrencyDTO 
-        { 
+
+        var dto = new CurrencyDTO{
             Id = currency.Id,
             Name = currency.Name, 
             Description = currency.Description,
             Status = currency.Status,
             Backing = currency.Backing,
+            Histories = new List<HistoryDTO>()
+        };
         
-        } : null;
+        if (currency.Histories != null && currency.Histories.Any()){
+            foreach (var history in currency.Histories){
+                dto.Histories.Add(new HistoryDTO{
+                    Id = history.Id,
+                    Datetime = history.Datetime,
+                    Price = history.Price,
+                    CurrencyId = history.CurrencyId
+                });
+            }
+        }
+        return dto;
     }
+
+    
+
 
     public List<CurrencyDTO> GetAllCurrency()
     {
-        return _currencyRepository.GetAll().Select(currency => new CurrencyDTO
-        {
-            Id = currency.Id,
-            Name = currency.Name,
-            Description = currency.Description,
-            Status = currency.Status,
-            Backing = currency.Backing,
-            
-        }).ToList();
+        var currencies = _currencyRepository.GetAll();
+
+        var result = new List<CurrencyDTO>();
+
+        foreach( var currency in currencies ){
+            var currencyDto = new CurrencyDTO
+            {
+                 Id = currency.Id,
+                Name = currency.Name,
+                Description = currency.Description,
+                Status = currency.Status,
+                Backing = currency.Backing,
+                Histories = currency.Histories != null 
+                                    ? currency.Histories
+                                    .Select(h => new HistoryDTO{
+                                        Id = h.Id,
+                                        Datetime = h.Datetime,
+                                        Price = h.Price,
+                                        CurrencyId = h.CurrencyId
+                                    }).ToList()
+                                    : new List<HistoryDTO>()
+            };
+            result.Add(currencyDto);
+        }
+        return result;
     }
 
     public CurrencyDTO? UpdateCurrency(int id, CurrencyDTO currencyDto)
