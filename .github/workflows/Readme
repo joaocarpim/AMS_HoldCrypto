@@ -1,7 +1,5 @@
-Status do Workflow ⚙️
+Status do Workflow 
 
 DevOps CI - Status
-
 Esse badge mostra o status do workflow de integração contínua (CI) do projeto. Sempre que houver alterações na branch main, 
 o workflow é executado automaticamente para garantir que o projeto está funcionando corretamente.
-![DevOps CI - Status](https://github.com/joaocarpim/AMS_HoldCrypto/actions/workflows/meu-workflow.yml/badge.svg)
