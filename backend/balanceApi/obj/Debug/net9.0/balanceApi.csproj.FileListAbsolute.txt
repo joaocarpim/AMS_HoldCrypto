@@ -32,3 +32,14 @@ C:\Users\0031432412025\AMS_HoldCrypto\backend\balanceApi\obj\Debug\net9.0\refint
 C:\Users\0031432412025\AMS_HoldCrypto\backend\balanceApi\obj\Debug\net9.0\balanceApi.pdb
 C:\Users\0031432412025\AMS_HoldCrypto\backend\balanceApi\obj\Debug\net9.0\balanceApi.genruntimeconfig.cache
 C:\Users\0031432412025\AMS_HoldCrypto\backend\balanceApi\obj\Debug\net9.0\ref\balanceApi.dll
+C:\Users\USUÁRIO\AMS_HoldCrypto\backend\balanceApi\obj\Debug\net9.0\balanceApi.csproj.AssemblyReference.cache
+C:\Users\USUÁRIO\AMS_HoldCrypto\backend\balanceApi\obj\Debug\net9.0\balanceApi.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\USUÁRIO\AMS_HoldCrypto\backend\balanceApi\obj\Debug\net9.0\balanceApi.AssemblyInfoInputs.cache
+C:\Users\USUÁRIO\AMS_HoldCrypto\backend\balanceApi\obj\Debug\net9.0\balanceApi.AssemblyInfo.cs
+C:\Users\USUÁRIO\AMS_HoldCrypto\backend\balanceApi\obj\Debug\net9.0\balanceApi.csproj.CoreCompileInputs.cache
+C:\Users\USUÁRIO\AMS_HoldCrypto\backend\balanceApi\obj\Debug\net9.0\balanceApi.MvcApplicationPartsAssemblyInfo.cs
+C:\Users\USUÁRIO\AMS_HoldCrypto\backend\balanceApi\obj\Debug\net9.0\balanceApi.MvcApplicationPartsAssemblyInfo.cache
+C:\Users\USUÁRIO\AMS_HoldCrypto\backend\balanceApi\obj\Debug\net9.0\balanceApi.sourcelink.json
+C:\Users\USUÁRIO\AMS_HoldCrypto\backend\balanceApi\obj\Debug\net9.0\balanceApi.dll
+C:\Users\USUÁRIO\AMS_HoldCrypto\backend\balanceApi\obj\Debug\net9.0\refint\balanceApi.dll
+C:\Users\USUÁRIO\AMS_HoldCrypto\backend\balanceApi\obj\Debug\net9.0\balanceApi.pdb
