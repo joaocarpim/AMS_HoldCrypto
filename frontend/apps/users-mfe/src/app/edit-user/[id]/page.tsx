@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation';
 import UserForm from 'shared/components/UserForm';
 import { UserFormValues } from 'shared/types/types/UserFormValues';
 import userService, { User } from 'shared/services/apis/userService';
-
 interface EditUserPageProps {
   params: { id: string };
 }

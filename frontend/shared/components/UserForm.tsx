@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
-import { UserFormValues } from "@/app/types/UserFormValues";
+import React, { useState } from 'react';
+import { UserFormValues } from 'shared/types/types/UserFormValues';
 
 interface UserFormProps {
   initialValues?: UserFormValues; //Para edição ou valores iniciais

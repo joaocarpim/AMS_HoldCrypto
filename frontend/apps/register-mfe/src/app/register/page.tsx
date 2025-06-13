@@ -1,15 +1,13 @@
 "use client";
 
 import React from "react";
-
-import UserForm from 'shared/components/UserForm';
-
-import { UserFormValues } from 'shared/types/types/UserFormValues';
+import UserForm from 'shared/components/UserForm'; 
+import { UserFormValues } from 'shared/types/UserFormValues';  // Corrigido para importar de shared/types
 
 const RegisterPage = () => {
   const handleSubmit = async (values: UserFormValues) => {
     try {
-      const response = await fetch("http://localhost:5294/api/User", {
+      const response = await fetch(`${process.env.API_URL}/api/User`, { // Usando a variável de ambiente para a URL da API
         method: "POST",
         headers: {
           "Content-Type": "application/json",
