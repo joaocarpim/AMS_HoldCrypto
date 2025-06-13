@@ -2,8 +2,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import userService, { User } from "D:\\AMS_HoldCryptoB.O2\\AMS_HoldCrypto\\frontend\\src\\services\\apis\\userService";
-import Link from "next/link";
+import userService, { User } from "@/features/user/services/userService";import Link from "next/link";
 import { useRouter } from 'next/navigation';
 
 export default function ListUsersPage() {
