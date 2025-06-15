@@ -1,5 +1,4 @@
-// src/services/api.ts
-const PREFIX = '/api';  
+const PREFIX = '/api';
 
 const crudAPI = (basePath: string) => ({
   create: () => `${basePath}`,
@@ -9,7 +8,7 @@ const crudAPI = (basePath: string) => ({
   delete:   (id: string|number) => `${basePath}/${id}`,
 });
 
-export const userAPI = crudAPI(`${PREFIX}/user`);
+export const userAPI = crudAPI(`${PREFIX}/User`);
 export const authAPI = {
   login:        () => `${PREFIX}/auth/login`,
   logout:       () => `${PREFIX}/auth/logout`,

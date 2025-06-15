@@ -1,80 +1,133 @@
-'use client';
-
-import React, { useEffect, useState } from 'react';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import axios from 'axios';
+"use client";
+import AppBar from "@mui/material/AppBar";
+import Toolbar from "@mui/material/Toolbar";
+import Typography from "@mui/material/Typography";
+import Button from "@mui/material/Button";
+import Box from "@mui/material/Box";
+import IconButton from "@mui/material/IconButton";
+import MenuIcon from "@mui/icons-material/Menu";
+import Menu from "@mui/material/Menu";
+import MenuItem from "@mui/material/MenuItem";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import axios from "axios";
 
 export default function Header() {
   const router = useRouter();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [userName, setUserName] = useState('');
+  const [userName, setUserName] = useState("");
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem("token");
     if (token) {
       axios
-        .get('/api/auth/profile', {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+        .get("/api/auth/profile", {
+          headers: { Authorization: `Bearer ${token}` },
         })
         .then((res) => {
           setIsLoggedIn(true);
-          setUserName(res.data.user); // ajuste conforme a resposta real
+          setUserName(res.data.user || "Usuário");
         })
-        .catch((err) => {
-          console.error('Erro ao buscar perfil:', err);
-          setIsLoggedIn(false);
-        });
+        .catch(() => setIsLoggedIn(false));
     }
   }, []);
 
   const handleLogout = () => {
-    localStorage.removeItem('token');
+    localStorage.removeItem("token");
     setIsLoggedIn(false);
-    setUserName('');
-    router.push('/login');
+    setUserName("");
+    router.push("/login");
+  };
+
+  const handleMenu = (event: React.MouseEvent<HTMLElement>) => {
+    setAnchorEl(event.currentTarget);
+  };
+  const handleClose = () => {
+    setAnchorEl(null);
   };
 
   return (
-    <header className="bg-black text-yellow-400 shadow-md sticky top-0 z-50">
-      <div className="max-w-7xl mx-auto flex items-center justify-between py-4 px-6 md:px-8">
-        <Link href="/">
-          <h1 className="text-4xl font-bold uppercase tracking-wide hover:text-yellow-500 transition duration-300 cursor-pointer">
+    <AppBar position="sticky" color="default" elevation={2} sx={{ mb: 4 }}>
+      <Toolbar>
+        <Link href="/" style={{ textDecoration: "none", flexGrow: 1 }}>
+          <Typography
+            variant="h5"
+            color="primary"
+            fontWeight="bold"
+            sx={{
+              letterSpacing: 2,
+              textTransform: "uppercase",
+              cursor: "pointer",
+              "&:hover": { color: "secondary.main" },
+            }}
+          >
             AMS HoldCrypto
-          </h1>
+          </Typography>
         </Link>
 
-        <nav className="flex items-center space-x-6">
+        {/* Menu para telas pequenas */}
+        <Box sx={{ display: { xs: "flex", md: "none" } }}>
+          <IconButton color="primary" onClick={handleMenu}>
+            <MenuIcon />
+          </IconButton>
+          <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleClose}>
+            {isLoggedIn ? (
+              [
+                <MenuItem key="user" disabled>
+                  Olá, {userName}
+                </MenuItem>,
+                <MenuItem key="logout" onClick={handleLogout}>
+                  Sair
+                </MenuItem>,
+              ]
+            ) : (
+              [
+                <MenuItem key="login" onClick={() => router.push("/login")}>
+                  Login
+                </MenuItem>,
+                <MenuItem key="register" onClick={() => router.push("/register")}>
+                  Registrar-se
+                </MenuItem>,
+              ]
+            )}
+          </Menu>
+        </Box>
+
+        {/* Menu para telas médias/grandes */}
+        <Box sx={{ display: { xs: "none", md: "flex" }, alignItems: "center", gap: 2 }}>
           {isLoggedIn ? (
             <>
-              <span className="text-lg font-semibold text-yellow-400">
+              <Typography color="primary" fontWeight="bold">
                 Olá, {userName}
-              </span>
-              <button
-                onClick={handleLogout}
-                className="px-6 py-2 bg-red-600 text-white font-medium rounded-lg shadow hover:bg-red-700 transition duration-300"
-              >
+              </Typography>
+              <Button color="error" variant="contained" onClick={handleLogout}>
                 Sair
-              </button>
+              </Button>
             </>
           ) : (
             <>
-              <Link href="/login">
-                <button className="px-6 py-2 bg-yellow-400 text-black font-medium rounded-lg shadow hover:bg-yellow-500 transition duration-300">
-                  Login
-                </button>
-              </Link>
-              <Link href="/register">
-                <button className="px-6 py-2 bg-yellow-400 text-black font-medium rounded-lg shadow hover:bg-yellow-500 transition duration-300">
-                  Registrar-se
-                </button>
-              </Link>
+              <Button
+                color="primary"
+                variant="contained"
+                component={Link}
+                href="/login"
+              >
+                Login
+              </Button>
+              <Button
+                color="primary"
+                variant="outlined"
+                component={Link}
+                href="/register"
+              >
+                Registrar-se
+              </Button>
             </>
           )}
-        </nav>
-      </div>
-    </header>
+        </Box>
+      </Toolbar>
+    </AppBar>
   );
 }

@@ -7,15 +7,15 @@ using System.Text.Json.Serialization;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddCors(options =>
-    {
-        options.AddPolicy("AllowFrontEnd",
-            builder =>
-            {
-                builder.WithOrigins("http://localhost:5105")
-                    .AllowAnyMethod()
-                    .AllowAnyHeader();
-            });
-    });
+{
+    options.AddPolicy("AllowFrontEnd",
+        builder =>
+        {
+            builder.WithOrigins("http://localhost:3000") // Porta do seu frontend!
+                .AllowAnyMethod()
+                .AllowAnyHeader();
+        });
+});
 
 // Configuração de injeção de dependências
 builder.Services.AddControllers();

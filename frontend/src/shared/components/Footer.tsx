@@ -1,11 +1,23 @@
-import React from "react";
+"use client";
+import Box from "@mui/material/Box";
+import Typography from "@mui/material/Typography";
 
-const Footer = () => {
+export default function Footer() {
   return (
-    <footer className="bg-black w-full p-6 text-center text-sm text-yellow-500">
-      <p>&copy; {new Date().getFullYear()} AMS Trade Holding. Todos os direitos reservados.</p>
-    </footer>
+    <Box
+      component="footer"
+      sx={{
+        bgcolor: "background.default",
+        color: "primary.main",
+        py: 3,
+        textAlign: "center",
+        mt: 8,
+        borderTop: "1px solid #333",
+      }}
+    >
+      <Typography variant="body2">
+        &copy; {new Date().getFullYear()} AMS Trade Holding. Todos os direitos reservados.
+      </Typography>
+    </Box>
   );
-};
-
-export default Footer;
+}

@@ -1,5 +1,6 @@
 import axios from 'axios';
-import { userAPI } from './api';
+import { userAPI } from '@/shared/api/api';
+
 export interface User {
   id: number;
   name: string;

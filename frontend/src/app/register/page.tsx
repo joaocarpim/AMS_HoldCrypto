@@ -1,2 +1,2 @@
-import RegisterPage from "@/features/user/pages/register";
+import RegisterPage from "@/features/auth/RegisterPage";
 export default RegisterPage;

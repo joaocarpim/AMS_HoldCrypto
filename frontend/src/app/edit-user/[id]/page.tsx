@@ -1,2 +1,4 @@
-import EditUserPage from "@/features/user/pages/edit";
-export default EditUserPage;
+import UserCrudPage from "@/features/user/pages/EditUserPage";
+export default function EditUserPage({ params }: { params: { id: string } }) {
+  return <UserCrudPage params={params} isEdit />;
+}
