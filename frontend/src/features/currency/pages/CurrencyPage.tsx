@@ -154,6 +154,7 @@ const CurrencyPage: React.FC = () => {
                               status: c.status,
                               backing: c.backing,
                               icon: c.icon,
+                              histories: c.histories
                             })
                           }
                         >

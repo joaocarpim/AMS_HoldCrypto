@@ -43,17 +43,23 @@ const iconMap: Record<string, JSX.Element> = {
 };
 
 const CurrencyForm: React.FC<Props> = ({ initialValues, onSubmit, loading, onCancel }) => {
-  const [form, setForm] = useState<Currency>(
-    initialValues || { name: "", description: "", status: true, backing: "USD", icon: "MonetizationOn" }
-  );
+  const [form, setForm] = useState<Currency>({
+    name: "",
+    description: "",
+    status: true,
+    backing: "USD",
+    icon: "MonetizationOn",
+    ...(initialValues || {}),
+  });
 
   useEffect(() => {
-    if (initialValues) setForm(initialValues);
+    if (initialValues) setForm({ ...form, ...initialValues });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialValues]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value, type } = e.target;
-    setForm(f => ({
+    setForm((f) => ({
       ...f,
       [name]: type === "checkbox"
         ? (e.target as HTMLInputElement).checked
@@ -62,14 +68,14 @@ const CurrencyForm: React.FC<Props> = ({ initialValues, onSubmit, loading, onCan
   };
 
   const handleSelectChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setForm(f => ({
+    setForm((f) => ({
       ...f,
       backing: e.target.value as Backing,
     }));
   };
 
   const handleIconChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setForm(f => ({
+    setForm((f) => ({
       ...f,
       icon: e.target.value,
     }));
@@ -77,6 +83,15 @@ const CurrencyForm: React.FC<Props> = ({ initialValues, onSubmit, loading, onCan
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    // Validação básica extra para garantir que o campo icon está sempre presente
+    if (!form.icon) {
+      alert("Selecione um ícone para a moeda.");
+      return;
+    }
+    if (!form.name || !form.description) {
+      alert("Preencha todos os campos obrigatórios.");
+      return;
+    }
     onSubmit(form);
   };
 
@@ -107,10 +122,11 @@ const CurrencyForm: React.FC<Props> = ({ initialValues, onSubmit, loading, onCan
           label="Backing"
           value={form.backing}
           onChange={handleSelectChange}
+          required
           fullWidth
           sx={yellowField}
         >
-          {backings.map(b => (
+          {backings.map((b) => (
             <MenuItem key={b} value={b}>{b}</MenuItem>
           ))}
         </TextField>
@@ -120,10 +136,11 @@ const CurrencyForm: React.FC<Props> = ({ initialValues, onSubmit, loading, onCan
           label="Ícone"
           value={form.icon}
           onChange={handleIconChange}
+          required
           fullWidth
           sx={yellowField}
         >
-          {iconOptions.map(opt => (
+          {iconOptions.map((opt) => (
             <MenuItem key={opt.value} value={opt.value}>
               <Stack direction="row" alignItems="center" spacing={1}>
                 {iconMap[opt.value]}
@@ -135,7 +152,7 @@ const CurrencyForm: React.FC<Props> = ({ initialValues, onSubmit, loading, onCan
         <FormControlLabel
           control={
             <Checkbox
-              checked={form.status}
+              checked={!!form.status}
               onChange={handleChange}
               name="status"
               sx={{
@@ -164,7 +181,12 @@ const CurrencyForm: React.FC<Props> = ({ initialValues, onSubmit, loading, onCan
               color="inherit"
               onClick={onCancel}
               disabled={loading}
-              sx={{ minWidth: 120, fontWeight: "bold", borderColor: "#fcd34d", color: "#fcd34d" }}
+              sx={{
+                minWidth: 120,
+                fontWeight: "bold",
+                borderColor: "#fcd34d",
+                color: "#fcd34d"
+              }}
             >
               Cancelar
             </Button>

@@ -1,4 +1,7 @@
-import UserCrudPage from "@/features/user/pages/EditUserPage";
-export default function EditUserPage({ params }: { params: { id: string } }) {
-  return <UserCrudPage params={params} isEdit />;
+"use client";
+import EditUserPage from "@/features/user/pages/EditUserPage";
+
+export default function EditUserRoutePage({ params }: { params: { id: string } }) {
+  // Acesse diretamente. O warning é só aviso para o futuro.
+  return <EditUserPage id={params.id} />;
 }

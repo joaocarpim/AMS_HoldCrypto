@@ -13,6 +13,6 @@ export interface Currency {
   description: string;
   status: boolean;
   backing: Backing;
-  icon?: string; // novo campo para o nome do ícone
-  histories?: { id: number; datetime: string; price: number }[];
+  icon: string; // Agora obrigatório!
+  histories?: History[];
 }

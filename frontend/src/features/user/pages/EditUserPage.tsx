@@ -13,38 +13,75 @@ import CircularProgress from "@mui/material/CircularProgress";
 import { yellowBorderBox } from "@/shared/theme/boxStyles";
 
 interface EditUserPageProps {
-  params: { id: string };
+  id: string;
 }
 
-export default function EditUserPage({ params }: EditUserPageProps) {
+export default function EditUserPage({ id }: EditUserPageProps) {
   const router = useRouter();
   const [initialValues, setInitialValues] = useState<UserFormValues | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    console.log("EditUserPage: id =", id, "typeof:", typeof id);
+
+    const userId = Number(id);
+    if (!id || isNaN(userId) || userId <= 0) {
+      setError("ID de usuário inválido.");
+      setLoading(false);
+      console.error(
+        "ID inválido detectado no EditUserPage. id:",
+        id,
+        "userId (Number):",
+        userId
+      );
+      return;
+    }
+
     const fetchUser = async () => {
       try {
-        const user: User = await userService.getById(Number(params.id));
+        console.log("Buscando usuário ID:", userId);
+        const user: User = await userService.getById(userId);
         const { name, email, phone, address, password, photo } = user;
-        setInitialValues({ name, email, phone, address, password: password || "", photo });
-      } catch (err) {
-        console.error(err);
-        setError("Não foi possível carregar o usuário.");
+        setInitialValues({
+          name,
+          email,
+          phone,
+          address,
+          password: password || "",
+          photo,
+        });
+      } catch (err: any) {
+        console.error("Erro ao buscar usuário:", err?.response?.data || err);
+        setError(
+          err?.response?.data?.message ||
+            "Não foi possível carregar o usuário."
+        );
       } finally {
         setLoading(false);
       }
     };
     fetchUser();
-  }, [params.id]);
+  }, [id]);
 
   const handleSubmit = async (values: UserFormValues) => {
+    const userId = Number(id);
+    if (!id || isNaN(userId) || userId <= 0) {
+      alert("ID de usuário inválido.");
+      console.error(
+        "Tentativa de submit com ID inválido:",
+        id,
+        "userId (Number):",
+        userId
+      );
+      return;
+    }
     try {
-      await userService.update(Number(params.id), values);
+      await userService.update(userId, values);
       alert("Usuário atualizado com sucesso!");
       router.push("/users");
     } catch (err: any) {
-      console.error(err);
+      console.error("Erro ao atualizar usuário:", err);
       alert(err.message || "Falha ao atualizar usuário.");
     }
   };

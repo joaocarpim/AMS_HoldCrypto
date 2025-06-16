@@ -11,8 +11,9 @@ export interface User {
   address: string;
 }
 
-const authHeader = () => {
-  const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+const authHeader = (): Record<string, string> => {
+  if (typeof window === 'undefined') return {};
+  const token = localStorage.getItem('token');
   return token ? { Authorization: `Bearer ${token}` } : {};
 };
 
@@ -25,6 +26,11 @@ const userService = {
   },
 
   getById: async (id: number): Promise<User> => {
+    // Validação robusta do ID
+    if (!id || typeof id !== "number" || isNaN(id) || id <= 0) {
+      console.error("userService.getById chamado com ID inválido:", id);
+      throw new Error("ID de usuário inválido.");
+    }
     const response = await axios.get(userAPI.getById(id), {
       headers: authHeader(),
     });
@@ -39,6 +45,10 @@ const userService = {
   },
 
   update: async (id: number, user: Partial<User>) => {
+    if (!id || typeof id !== "number" || isNaN(id) || id <= 0) {
+      console.error("userService.update chamado com ID inválido:", id);
+      throw new Error("ID de usuário inválido.");
+    }
     const response = await axios.put(userAPI.update(id), user, {
       headers: authHeader(),
     });
@@ -46,6 +56,10 @@ const userService = {
   },
 
   delete: async (id: number) => {
+    if (!id || typeof id !== "number" || isNaN(id) || id <= 0) {
+      console.error("userService.delete chamado com ID inválido:", id);
+      throw new Error("ID de usuário inválido.");
+    }
     const response = await axios.delete(userAPI.delete(id), {
       headers: authHeader(),
     });
