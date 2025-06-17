@@ -2,29 +2,31 @@ public class CurrencyService : ICurrencyService
 {
     private readonly ICurrencyRepository _currencyRepository;
 
-    public CurrencyService(ICurrencyRepository CurrencyRepository)
+    public CurrencyService(ICurrencyRepository currencyRepository)
     {
-        _currencyRepository = CurrencyRepository;
+        _currencyRepository = currencyRepository;
     }
 
-     public CurrencyDTO RegisterCurrency(CurrencyDTO currencyDto)
+    public CurrencyDTO RegisterCurrency(CurrencyDTO currencyDto)
     {
-
-        var currency = new Currency 
+        var currency = new Currency
         {
-            Name = currencyDto.Name, 
-            Description = currencyDto.Description, 
+            Name = currencyDto.Name,
+            Symbol = currencyDto.Symbol,
+            Description = currencyDto.Description,
+            Status = currencyDto.Status,
             Backing = currencyDto.Backing,
         };
         _currencyRepository.Add(currency);
 
         return new CurrencyDTO
         {
+            Id = currency.Id,
             Name = currency.Name,
+            Symbol = currency.Symbol,
             Description = currency.Description,
             Status = currency.Status,
             Backing = currency.Backing,
-            
         };
     }
 
@@ -33,23 +35,27 @@ public class CurrencyService : ICurrencyService
         return _currencyRepository.GetById(id);
     }
 
-
     public CurrencyDTO? GetCurrencyDetails(int id)
     {
         var currency = _currencyRepository.GetById(id);
 
-        var dto = new CurrencyDTO{
+        var dto = new CurrencyDTO
+        {
             Id = currency.Id,
-            Name = currency.Name, 
+            Name = currency.Name,
+            Symbol = currency.Symbol,
             Description = currency.Description,
             Status = currency.Status,
             Backing = currency.Backing,
             Histories = new List<HistoryDTO>()
         };
-        
-        if (currency.Histories != null && currency.Histories.Any()){
-            foreach (var history in currency.Histories){
-                dto.Histories.Add(new HistoryDTO{
+
+        if (currency.Histories != null && currency.Histories.Any())
+        {
+            foreach (var history in currency.Histories)
+            {
+                dto.Histories.Add(new HistoryDTO
+                {
                     Id = history.Id,
                     Datetime = history.Datetime,
                     Price = history.Price,
@@ -60,32 +66,32 @@ public class CurrencyService : ICurrencyService
         return dto;
     }
 
-    
-
-
     public List<CurrencyDTO> GetAllCurrency()
     {
         var currencies = _currencyRepository.GetAll();
 
         var result = new List<CurrencyDTO>();
 
-        foreach( var currency in currencies ){
+        foreach (var currency in currencies)
+        {
             var currencyDto = new CurrencyDTO
             {
-                 Id = currency.Id,
+                Id = currency.Id,
                 Name = currency.Name,
+                Symbol = currency.Symbol,
                 Description = currency.Description,
                 Status = currency.Status,
                 Backing = currency.Backing,
-                Histories = currency.Histories != null 
-                                    ? currency.Histories
-                                    .Select(h => new HistoryDTO{
-                                        Id = h.Id,
-                                        Datetime = h.Datetime,
-                                        Price = h.Price,
-                                        CurrencyId = h.CurrencyId
-                                    }).ToList()
-                                    : new List<HistoryDTO>()
+                Histories = currency.Histories != null
+                    ? currency.Histories
+                        .Select(h => new HistoryDTO
+                        {
+                            Id = h.Id,
+                            Datetime = h.Datetime,
+                            Price = h.Price,
+                            CurrencyId = h.CurrencyId
+                        }).ToList()
+                    : new List<HistoryDTO>()
             };
             result.Add(currencyDto);
         }
@@ -96,22 +102,23 @@ public class CurrencyService : ICurrencyService
     {
         var currency = _currencyRepository.GetById(id);
         if (currency == null) return null;
-        
+
         currency.Name = currencyDto.Name;
+        currency.Symbol = currencyDto.Symbol;
         currency.Description = currencyDto.Description;
         currency.Status = currencyDto.Status;
         currency.Backing = currencyDto.Backing;
-        
+
         _currencyRepository.Update(currency);
-        
+
         return new CurrencyDTO
         {
+            Id = currency.Id,
             Name = currency.Name,
+            Symbol = currency.Symbol,
             Description = currency.Description,
             Status = currency.Status,
             Backing = currency.Backing,
-            
-            
         };
     }
 
@@ -122,7 +129,4 @@ public class CurrencyService : ICurrencyService
         _currencyRepository.Delete(id);
         return true;
     }
-
-    
-
 }

@@ -10,9 +10,10 @@ export interface History {
 export interface Currency {
   id?: number;
   name: string;
+  symbol: string; // NOVO CAMPO
   description: string;
   status: boolean;
   backing: Backing;
-  icon: string; // Agora obrigatório!
+  icon: string;
   histories?: History[];
 }

@@ -16,7 +16,7 @@ import CurrencyExchangeIcon from "@mui/icons-material/CurrencyExchange";
 import { yellowField } from "@/shared/theme/fieldStyles";
 
 interface Props {
-  initialValues?: Currency;
+  initialValues: Currency;
   onSubmit: (currency: Currency) => void;
   loading?: boolean;
   onCancel?: () => void;
@@ -42,54 +42,59 @@ const iconMap: Record<string, JSX.Element> = {
   CurrencyExchange: <CurrencyExchangeIcon />,
 };
 
+const defaultForm: Currency = {
+  name: "",
+  symbol: "",
+  description: "",
+  status: true,
+  backing: "USD",
+  icon: "MonetizationOn",
+};
+
 const CurrencyForm: React.FC<Props> = ({ initialValues, onSubmit, loading, onCancel }) => {
-  const [form, setForm] = useState<Currency>({
-    name: "",
-    description: "",
-    status: true,
-    backing: "USD",
-    icon: "MonetizationOn",
-    ...(initialValues || {}),
-  });
+  // Garante que icon nunca é undefined
+  const safeInitialValues = { ...defaultForm, ...initialValues, icon: initialValues.icon || "MonetizationOn" };
+  const [form, setForm] = useState<Currency>(safeInitialValues);
 
   useEffect(() => {
-    if (initialValues) setForm({ ...form, ...initialValues });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    setForm({ ...defaultForm, ...initialValues, icon: initialValues.icon || "MonetizationOn" });
+    // eslint-disable-next-line
   }, [initialValues]);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value, type } = e.target;
-    setForm((f) => ({
-      ...f,
-      [name]: type === "checkbox"
-        ? (e.target as HTMLInputElement).checked
-        : value,
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value, type, checked } = e.target;
+    setForm((prev) => ({
+      ...prev,
+      [name]: type === "checkbox" ? checked : value,
     }));
   };
 
   const handleSelectChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setForm((f) => ({
-      ...f,
+    setForm((prev) => ({
+      ...prev,
       backing: e.target.value as Backing,
     }));
   };
 
   const handleIconChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setForm((f) => ({
-      ...f,
+    setForm((prev) => ({
+      ...prev,
       icon: e.target.value,
     }));
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Validação básica extra para garantir que o campo icon está sempre presente
     if (!form.icon) {
       alert("Selecione um ícone para a moeda.");
       return;
     }
-    if (!form.name || !form.description) {
+    if (!form.name || !form.symbol || !form.description) {
       alert("Preencha todos os campos obrigatórios.");
+      return;
+    }
+    if (!/^[A-Z0-9]{3,10}$/.test(form.symbol)) {
+      alert("O símbolo deve ser em letras maiúsculas, sem espaços, ex: BTC, ETH, ADA.");
       return;
     }
     onSubmit(form);
@@ -106,6 +111,16 @@ const CurrencyForm: React.FC<Props> = ({ initialValues, onSubmit, loading, onCan
           required
           fullWidth
           sx={yellowField}
+        />
+        <TextField
+          name="symbol"
+          label="Símbolo (ex: BTC, ETH, ADA)"
+          value={form.symbol}
+          onChange={handleChange}
+          required
+          fullWidth
+          sx={yellowField}
+          inputProps={{ style: { textTransform: "uppercase" }, maxLength: 10 }}
         />
         <TextField
           name="description"
@@ -134,7 +149,7 @@ const CurrencyForm: React.FC<Props> = ({ initialValues, onSubmit, loading, onCan
           select
           name="icon"
           label="Ícone"
-          value={form.icon}
+          value={form.icon || "MonetizationOn"}
           onChange={handleIconChange}
           required
           fullWidth

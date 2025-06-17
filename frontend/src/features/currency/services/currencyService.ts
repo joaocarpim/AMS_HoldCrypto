@@ -3,12 +3,10 @@ import { Currency } from "../types/Currency";
 
 const API_URL = "http://localhost:5105/api/currency";
 
-// Função para obter o token (exemplo: do localStorage)
 function getToken() {
   return localStorage.getItem("token");
 }
 
-// Exemplo de uso do token nas requisições:
 export const getAllCurrencies = () =>
   axios.get<Currency[]>(API_URL, {
     headers: {

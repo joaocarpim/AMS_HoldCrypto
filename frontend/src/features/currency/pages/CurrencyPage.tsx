@@ -1,41 +1,24 @@
-"use client";
-import React, { useEffect, useState } from "react";
-import {
-  getAllCurrencies,
-  createCurrency,
-  updateCurrency,
-  deleteCurrency,
-} from "../services/currencyService";
+import React, { useState, useEffect } from "react";
 import { Currency } from "../types/Currency";
+import { getAllCurrencies, createCurrency, updateCurrency, deleteCurrency } from "../services/currencyService";
 import CurrencyForm from "../components/CurrencyForm";
-import Box from "@mui/material/Box";
-import Typography from "@mui/material/Typography";
-import Button from "@mui/material/Button";
-import Table from "@mui/material/Table";
-import TableBody from "@mui/material/TableBody";
-import TableCell from "@mui/material/TableCell";
-import TableContainer from "@mui/material/TableContainer";
-import TableHead from "@mui/material/TableHead";
-import TableRow from "@mui/material/TableRow";
-import Paper from "@mui/material/Paper";
-import Stack from "@mui/material/Stack";
+import { Box, Button, Typography, Stack, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper } from "@mui/material";
 import MonetizationOnIcon from "@mui/icons-material/MonetizationOn";
 import CurrencyBitcoinIcon from "@mui/icons-material/CurrencyBitcoin";
-import EuroIcon from "@mui/icons-material/Euro";
 import AttachMoneyIcon from "@mui/icons-material/AttachMoney";
+import EuroIcon from "@mui/icons-material/Euro";
 import CurrencyYenIcon from "@mui/icons-material/CurrencyYen";
 import CurrencyExchangeIcon from "@mui/icons-material/CurrencyExchange";
-import { crudTableBox, yellowBorderBox } from "@/shared/theme/boxStyles";
-import Header from "@/shared/components/Header";
 import Footer from "@/shared/components/Footer";
+import Header from "@/shared/components/Header";
 
 const iconMap: Record<string, JSX.Element> = {
-  MonetizationOn: <MonetizationOnIcon sx={{ color: "#fcd34d" }} />,
-  CurrencyBitcoin: <CurrencyBitcoinIcon sx={{ color: "#fcd34d" }} />,
-  AttachMoney: <AttachMoneyIcon sx={{ color: "#fcd34d" }} />,
-  Euro: <EuroIcon sx={{ color: "#fcd34d" }} />,
-  CurrencyYen: <CurrencyYenIcon sx={{ color: "#fcd34d" }} />,
-  CurrencyExchange: <CurrencyExchangeIcon sx={{ color: "#fcd34d" }} />,
+  MonetizationOn: <MonetizationOnIcon />,
+  CurrencyBitcoin: <CurrencyBitcoinIcon />,
+  AttachMoney: <AttachMoneyIcon />,
+  Euro: <EuroIcon />,
+  CurrencyYen: <CurrencyYenIcon />,
+  CurrencyExchange: <CurrencyExchangeIcon />,
 };
 
 const CurrencyPage: React.FC = () => {
@@ -51,6 +34,9 @@ const CurrencyPage: React.FC = () => {
 
   useEffect(() => {
     fetchCurrencies();
+    // Atualiza a cada 5 minutos
+    const interval = setInterval(fetchCurrencies, 5 * 60 * 1000);
+    return () => clearInterval(interval);
   }, []);
 
   const handleSave = async (currency: Currency) => {
@@ -98,12 +84,12 @@ const CurrencyPage: React.FC = () => {
           variant="contained"
           color="primary"
           sx={{ mb: 3, fontWeight: "bold" }}
-          onClick={() => setEditing({ name: "", description: "", status: true, backing: "USD", icon: "MonetizationOn" })}
+          onClick={() => setEditing({ name: "", symbol: "", description: "", status: true, backing: "USD", icon: "MonetizationOn" })}
         >
           Nova Moeda
         </Button>
         {editing && (
-          <Box sx={yellowBorderBox} mb={3}>
+          <Box sx={{ border: "2px solid #fcd34d", borderRadius: 2, background: "#18181b" }} mb={3}>
             <CurrencyForm
               initialValues={editing}
               onSubmit={handleSave}
@@ -112,15 +98,17 @@ const CurrencyPage: React.FC = () => {
             />
           </Box>
         )}
-        <TableContainer component={Paper} sx={crudTableBox}>
+        <TableContainer component={Paper} sx={{ background: "#18181b", borderRadius: 2 }}>
           <Table>
             <TableHead>
               <TableRow>
                 <TableCell sx={{ fontWeight: "bold", color: "#fcd34d" }}>Ícone</TableCell>
                 <TableCell sx={{ fontWeight: "bold", color: "#fcd34d" }}>Nome</TableCell>
+                <TableCell sx={{ fontWeight: "bold", color: "#fcd34d" }}>Símbolo</TableCell>
                 <TableCell sx={{ fontWeight: "bold", color: "#fcd34d" }}>Descrição</TableCell>
                 <TableCell sx={{ fontWeight: "bold", color: "#fcd34d" }}>Backing</TableCell>
                 <TableCell sx={{ fontWeight: "bold", color: "#fcd34d" }}>Status</TableCell>
+                <TableCell sx={{ fontWeight: "bold", color: "#fcd34d" }}>Histórico (últimas 5 cotações)</TableCell>
                 <TableCell sx={{ fontWeight: "bold", color: "#fcd34d" }}>Ações</TableCell>
               </TableRow>
             </TableHead>
@@ -136,9 +124,26 @@ const CurrencyPage: React.FC = () => {
                         {c.name}
                       </Typography>
                     </TableCell>
+                    <TableCell>{c.symbol}</TableCell>
                     <TableCell>{c.description}</TableCell>
                     <TableCell>{c.backing}</TableCell>
                     <TableCell>{c.status ? "Ativo" : "Inativo"}</TableCell>
+                    <TableCell>
+                      {c.histories && c.histories.length > 0 ? (
+                        <ul style={{ paddingLeft: 16, margin: 0 }}>
+                          {c.histories
+                            .sort((a, b) => new Date(b.datetime).getTime() - new Date(a.datetime).getTime())
+                            .slice(0, 5)
+                            .map((h) => (
+                              <li key={h.id} style={{ color: "#fcd34d", fontWeight: "bold" }}>
+                                {new Date(h.datetime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} - {h.price}
+                              </li>
+                            ))}
+                        </ul>
+                      ) : (
+                        <span style={{ color: "#888" }}>Sem histórico</span>
+                      )}
+                    </TableCell>
                     <TableCell>
                       <Stack direction="row" spacing={1}>
                         <Button
@@ -150,6 +155,7 @@ const CurrencyPage: React.FC = () => {
                             setEditing({
                               id: c.id,
                               name: c.name,
+                              symbol: c.symbol,
                               description: c.description,
                               status: c.status,
                               backing: c.backing,
@@ -189,14 +195,16 @@ const CurrencyPage: React.FC = () => {
                   </TableRow>
                   {showHistoryId === c.id && c.histories && c.histories.length > 0 && (
                     <TableRow>
-                      <TableCell colSpan={6} sx={{ bgcolor: "#18181b", color: "#fff" }}>
-                        <strong>Histórico:</strong>
+                      <TableCell colSpan={8} sx={{ bgcolor: "#18181b", color: "#fff" }}>
+                        <strong>Histórico completo:</strong>
                         <ul style={{ marginLeft: 24 }}>
-                          {c.histories.map((h) => (
-                            <li key={h.id}>
-                              {new Date(h.datetime).toLocaleString()} - {h.price}
-                            </li>
-                          ))}
+                          {c.histories
+                            .sort((a, b) => new Date(b.datetime).getTime() - new Date(a.datetime).getTime())
+                            .map((h) => (
+                              <li key={h.id}>
+                                {new Date(h.datetime).toLocaleString()} - {h.price}
+                              </li>
+                            ))}
                         </ul>
                       </TableCell>
                     </TableRow>
@@ -211,4 +219,5 @@ const CurrencyPage: React.FC = () => {
     </>
   );
 };
+
 export default CurrencyPage;

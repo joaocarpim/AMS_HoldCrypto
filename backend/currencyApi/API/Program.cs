@@ -11,7 +11,7 @@ builder.Services.AddCors(options =>
     options.AddPolicy("AllowFrontEnd",
         builder =>
         {
-            builder.WithOrigins("http://localhost:3000") // Porta do seu frontend!
+            builder.WithOrigins("http://localhost:3000", "http://localhost:3001")
                 .AllowAnyMethod()
                 .AllowAnyHeader();
         });
@@ -19,7 +19,8 @@ builder.Services.AddCors(options =>
 
 // Configuração de injeção de dependências
 builder.Services.AddControllers();
-builder.Services.AddEndpointsApiExplorer();builder.Services.AddSwaggerGen(options =>
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen(options =>
 {
     options.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo
     {
