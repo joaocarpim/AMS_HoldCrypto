@@ -20,6 +20,7 @@ import NewsSection from "../shared/components/NewsSection";
 
 // Estilos modulares
 import { yellowBorderBox } from "@/shared/theme/boxStyles";
+import { useRouter } from "next/navigation";
 
 const destaqueMoedas = [
   { name: "Bitcoin", symbol: "BTC", price: 252500, change: 2.5 },
@@ -30,6 +31,7 @@ const destaqueMoedas = [
 export default function Home() {
   const [selected, setSelected] = useState<number | null>(null);
   const [showInfo, setShowInfo] = useState(false);
+  const router = useRouter();
 
   return (
     <>
@@ -53,9 +55,17 @@ export default function Home() {
             Sua plataforma para acompanhar, negociar e aprender sobre criptomoedas.
           </Typography>
           <Stack direction="row" spacing={2} justifyContent="center" mt={4}>
-            <MainButton variant="primary">Acessar Minha Conta</MainButton>
+            <MainButton variant="primary" onClick={() => router.push("/login")}>
+              Acessar Minha Conta
+            </MainButton>
             <MainButton variant="secondary" onClick={() => setShowInfo((v) => !v)}>
               Saiba Mais
+            </MainButton>
+            <MainButton
+              variant="secondary"
+              onClick={() => router.push("/currency")}
+            >
+              Ver Moedas
             </MainButton>
           </Stack>
           <Collapse in={showInfo} timeout={500}>

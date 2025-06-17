@@ -18,6 +18,7 @@ import Footer from "@/shared/components/Footer";
 import axios from "axios";
 import { authFormBox } from "@/shared/theme/boxStyles";
 import { yellowField } from "@/shared/theme/fieldStyles";
+import Link from "next/link";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -114,6 +115,12 @@ export default function LoginPage() {
             >
               {loading ? <CircularProgress size={24} color="inherit" /> : "Entrar"}
             </Button>
+            <Typography textAlign="center" mt={2}>
+              Não tem uma conta?{" "}
+              <Link href="/register" style={{ color: "#fcd34d", fontWeight: "bold", textDecoration: "underline" }}>
+                Cadastre-se
+              </Link>
+            </Typography>
           </Stack>
         </Box>
       </Container>
