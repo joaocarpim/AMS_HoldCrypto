@@ -1,5 +1,5 @@
 const PREFIX = '/api';
-
+//api
 const crudAPI = (basePath: string) => ({
   create: () => `${basePath}`,
   getAll:   () => `${basePath}`,
