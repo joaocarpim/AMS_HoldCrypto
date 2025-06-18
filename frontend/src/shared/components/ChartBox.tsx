@@ -5,9 +5,19 @@ import Typography from "@mui/material/Typography";
 import ButtonGroup from "@mui/material/ButtonGroup";
 import Button from "@mui/material/Button";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend } from "recharts";
+import { yellowBorderBox } from "@/shared/theme/boxStyles";
+
+// Tipagem para as moedas
+type PeriodKey = "dias" | "meses" | "anos";
+interface CoinData {
+  name: string;
+  symbol: string;
+  color: string;
+  data: Record<PeriodKey, { name: string; value: number }[]>;
+}
 
 // Dados simulados para diferentes períodos
-const coins = [
+const coins: CoinData[] = [
   {
     name: "Bitcoin",
     symbol: "BTC",
@@ -94,15 +104,15 @@ const coins = [
   },
 ];
 
-const periods = [
+const periods: { label: string; key: PeriodKey }[] = [
   { label: "Dias", key: "dias" },
   { label: "Meses", key: "meses" },
   { label: "Anos", key: "anos" },
 ];
 
 export default function ChartBox() {
-  const [selectedCoin, setSelectedCoin] = useState(0);
-  const [selectedPeriod, setSelectedPeriod] = useState<"dias" | "meses" | "anos">("anos");
+  const [selectedCoin, setSelectedCoin] = useState<number>(0);
+  const [selectedPeriod, setSelectedPeriod] = useState<PeriodKey>("anos");
 
   const coin = coins[selectedCoin];
   const data = coin.data[selectedPeriod];
@@ -110,12 +120,7 @@ export default function ChartBox() {
   return (
     <Box
       sx={{
-        borderRadius: "32px",
-        border: "3px solid #fcd34d",
-        background: "#18181b",
-        color: "#fff",
-        p: 3,
-        boxShadow: 2,
+        ...yellowBorderBox,
         minWidth: 340,
         maxWidth: 600,
         mb: { xs: 4, md: 0 },
@@ -128,7 +133,7 @@ export default function ChartBox() {
         Gráfico de {coin.name}
       </Typography>
       <ButtonGroup variant="outlined" sx={{ mb: 2 }}>
-        {coins.map((c, idx) => (
+        {coins.map((c: CoinData, idx: number) => (
           <Button
             key={c.symbol}
             onClick={() => setSelectedCoin(idx)}
@@ -150,7 +155,7 @@ export default function ChartBox() {
         {periods.map((p) => (
           <Button
             key={p.key}
-            onClick={() => setSelectedPeriod(p.key as "dias" | "meses" | "anos")}
+            onClick={() => setSelectedPeriod(p.key)}
             sx={{
               color: selectedPeriod === p.key ? "#fcd34d" : "#fff",
               fontWeight: selectedPeriod === p.key ? "bold" : "normal",

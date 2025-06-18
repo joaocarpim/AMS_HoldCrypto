@@ -1,51 +1,64 @@
-// src/shared/components/NewsSection.tsx
 'use client';
 import React from "react";
+import Box from "@mui/material/Box";
+import Typography from "@mui/material/Typography";
+import { useTheme } from "@mui/material/styles";
 
-const NewsSection: React.FC = () => (
-  <section style={{
-    background: "#23272f",
-    borderRadius: 16,
-    boxShadow: "0 2px 12px #0004",
-    padding: "32px 24px",
-    margin: "2rem 0",
-    width: "100%",
-    maxWidth: 950
-  }}>
-    <h3 style={{ color: "#fcd34d", fontWeight: "bold", marginBottom: 20, fontSize: 22 }}>Notícias Recentes</h3>
-    <ul style={{ paddingLeft: 0, listStyle: "none" }}>
-      <li style={{
-        color: "#fff",
-        marginBottom: 14,
-        background: "#18181b",
-        borderRadius: 10,
-        padding: "14px 18px",
-        boxShadow: "0 1px 6px #0002"
-      }}>
-        <strong style={{ color: "#fcd34d" }}>Bitcoin atinge novo topo em 2025!</strong> — O mercado segue aquecido com alta demanda institucional.
-      </li>
-      <li style={{
-        color: "#fff",
-        marginBottom: 14,
-        background: "#18181b",
-        borderRadius: 10,
-        padding: "14px 18px",
-        boxShadow: "0 1px 6px #0002"
-      }}>
-        <strong style={{ color: "#fcd34d" }}>Ethereum lança atualização Shanghai</strong> — Prometendo taxas menores e mais escalabilidade.
-      </li>
-      <li style={{
-        color: "#fff",
-        marginBottom: 14,
-        background: "#18181b",
-        borderRadius: 10,
-        padding: "14px 18px",
-        boxShadow: "0 1px 6px #0002"
-      }}>
-        <strong style={{ color: "#fcd34d" }}>BNB Chain cresce em volume</strong> — Novos projetos DeFi impulsionam a rede.
-      </li>
-    </ul>
-  </section>
-);
+const news = [
+  {
+    title: "Bitcoin atinge novo topo em 2025!",
+    desc: "O mercado segue aquecido com alta demanda institucional."
+  },
+  {
+    title: "Ethereum lança atualização Shanghai",
+    desc: "Prometendo taxas menores e mais escalabilidade."
+  },
+  {
+    title: "BNB Chain cresce em volume",
+    desc: "Novos projetos DeFi impulsionam a rede."
+  }
+];
+
+const NewsSection: React.FC = () => {
+  const theme = useTheme();
+  return (
+    <Box
+      sx={{
+        background: theme.palette.background.paper,
+        borderRadius: 2,
+        boxShadow: 3,
+        p: { xs: 2, sm: 4 },
+        my: 4,
+        width: "100%",
+        maxWidth: 950,
+        mx: "auto",
+      }}
+      component="section"
+    >
+      <Typography variant="h6" color="primary" fontWeight="bold" mb={2}>
+        Notícias Recentes
+      </Typography>
+      <Box component="ul" sx={{ p: 0, m: 0, listStyle: "none" }}>
+        {news.map((item, i) => (
+          <Box
+            key={i}
+            component="li"
+            sx={{
+              color: theme.palette.text.primary,
+              mb: 2,
+              background: theme.palette.background.default,
+              borderRadius: 1.5,
+              p: 2,
+              boxShadow: 1,
+              "& strong": { color: theme.palette.primary.main }
+            }}
+          >
+            <strong>{item.title}</strong> — {item.desc}
+          </Box>
+        ))}
+      </Box>
+    </Box>
+  );
+};
 
 export default NewsSection;

@@ -1,4 +1,4 @@
-'use client'
+'use client';
 import React from "react";
 import clsx from "clsx";
 
@@ -10,10 +10,10 @@ const MainButton: React.FC<MainButtonProps> = ({ variant = "primary", className,
   return (
     <button
       className={clsx(
-        "px-10 py-4 rounded-lg shadow-md transition-all duration-300 font-semibold focus:ring-4",
+        "px-10 py-4 rounded-lg shadow-md transition-all duration-300 font-semibold focus:ring-4 text-base sm:text-lg",
         variant === "primary"
-          ? "bg-yellow-500 hover:bg-yellow-600 text-black focus:ring-yellow-300"
-          : "bg-black hover:bg-gray-800 text-yellow-500 focus:ring-gray-600",
+          ? "bg-yellow-500 hover:bg-yellow-400 text-black focus:ring-yellow-300"
+          : "bg-neutral-900 hover:bg-gray-800 text-yellow-400 focus:ring-gray-600",
         className
       )}
       {...props}

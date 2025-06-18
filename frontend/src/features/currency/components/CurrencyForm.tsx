@@ -52,7 +52,6 @@ const defaultForm: Currency = {
 };
 
 const CurrencyForm: React.FC<Props> = ({ initialValues, onSubmit, loading, onCancel }) => {
-  // Garante que icon nunca é undefined
   const safeInitialValues = { ...defaultForm, ...initialValues, icon: initialValues.icon || "MonetizationOn" };
   const [form, setForm] = useState<Currency>(safeInitialValues);
 
@@ -101,7 +100,21 @@ const CurrencyForm: React.FC<Props> = ({ initialValues, onSubmit, loading, onCan
   };
 
   return (
-    <Box component="form" onSubmit={handleSubmit} sx={{ p: 2 }}>
+    <Box
+      component="form"
+      onSubmit={handleSubmit}
+      sx={{
+        p: { xs: 2, sm: 4 },
+        display: "flex",
+        flexDirection: "column",
+        gap: 2,
+        bgcolor: "#23272f",
+        borderRadius: 3,
+        boxShadow: 3,
+        maxWidth: 500,
+        mx: "auto",
+      }}
+    >
       <Stack spacing={2}>
         <TextField
           name="name"
@@ -131,39 +144,41 @@ const CurrencyForm: React.FC<Props> = ({ initialValues, onSubmit, loading, onCan
           fullWidth
           sx={yellowField}
         />
-        <TextField
-          select
-          name="backing"
-          label="Backing"
-          value={form.backing}
-          onChange={handleSelectChange}
-          required
-          fullWidth
-          sx={yellowField}
-        >
-          {backings.map((b) => (
-            <MenuItem key={b} value={b}>{b}</MenuItem>
-          ))}
-        </TextField>
-        <TextField
-          select
-          name="icon"
-          label="Ícone"
-          value={form.icon || "MonetizationOn"}
-          onChange={handleIconChange}
-          required
-          fullWidth
-          sx={yellowField}
-        >
-          {iconOptions.map((opt) => (
-            <MenuItem key={opt.value} value={opt.value}>
-              <Stack direction="row" alignItems="center" spacing={1}>
-                {iconMap[opt.value]}
-                <span>{opt.label}</span>
-              </Stack>
-            </MenuItem>
-          ))}
-        </TextField>
+        <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
+          <TextField
+            select
+            name="backing"
+            label="Backing"
+            value={form.backing}
+            onChange={handleSelectChange}
+            required
+            fullWidth
+            sx={yellowField}
+          >
+            {backings.map((b) => (
+              <MenuItem key={b} value={b}>{b}</MenuItem>
+            ))}
+          </TextField>
+          <TextField
+            select
+            name="icon"
+            label="Ícone"
+            value={form.icon || "MonetizationOn"}
+            onChange={handleIconChange}
+            required
+            fullWidth
+            sx={yellowField}
+          >
+            {iconOptions.map((opt) => (
+              <MenuItem key={opt.value} value={opt.value}>
+                <Stack direction="row" alignItems="center" spacing={1}>
+                  {iconMap[opt.value]}
+                  <span>{opt.label}</span>
+                </Stack>
+              </MenuItem>
+            ))}
+          </TextField>
+        </Stack>
         <FormControlLabel
           control={
             <Checkbox
@@ -179,7 +194,7 @@ const CurrencyForm: React.FC<Props> = ({ initialValues, onSubmit, loading, onCan
           label="Ativo"
           sx={{ color: "#fff" }}
         />
-        <Stack direction="row" spacing={2}>
+        <Stack direction="row" spacing={2} justifyContent="flex-end">
           <Button
             type="submit"
             variant="contained"

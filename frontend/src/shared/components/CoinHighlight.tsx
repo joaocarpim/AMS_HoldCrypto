@@ -2,13 +2,14 @@
 import Card from "@mui/material/Card";
 import CardContent from "@mui/material/CardContent";
 import Typography from "@mui/material/Typography";
+import { useTheme } from "@mui/material/styles";
 
 export interface CoinHighlightProps {
   name: string;
   symbol: string;
   price: number;
   change: number;
-  selected?: boolean; // <-- adicione esta linha
+  selected?: boolean;
 }
 
 export default function CoinHighlight({
@@ -18,18 +19,20 @@ export default function CoinHighlight({
   change,
   selected = false,
 }: CoinHighlightProps) {
+  const theme = useTheme();
   return (
     <Card
       sx={{
-        bgcolor: selected ? "#fcd34d" : "#23272f",
-        color: selected ? "#23272f" : "#fff",
+        bgcolor: selected ? theme.palette.primary.main : theme.palette.background.paper,
+        color: selected ? theme.palette.background.paper : theme.palette.text.primary,
         transition: "all 0.2s",
-        boxShadow: selected ? 8 : 2,
+        boxShadow: selected ? 8 : 1,
+        border: selected ? `2px solid ${theme.palette.primary.main}` : "none",
       }}
     >
       <CardContent sx={{ textAlign: "center" }}>
         <Typography variant="h6" fontWeight="bold">
-          {name} <span style={{ color: "#fcd34d" }}>{symbol}</span>
+          {name} <span style={{ color: theme.palette.primary.main }}>{symbol}</span>
         </Typography>
         <Typography variant="h5" sx={{ my: 1 }}>
           R$ {price.toLocaleString("pt-BR")}

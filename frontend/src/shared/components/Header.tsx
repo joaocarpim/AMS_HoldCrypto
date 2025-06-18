@@ -1,4 +1,4 @@
-"use client";
+'use client';
 import AppBar from "@mui/material/AppBar";
 import Toolbar from "@mui/material/Toolbar";
 import Typography from "@mui/material/Typography";
@@ -12,12 +12,14 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import axios from "axios";
+import { useTheme } from "@mui/material/styles";
 
 export default function Header() {
   const router = useRouter();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userName, setUserName] = useState("");
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const theme = useTheme();
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -49,7 +51,16 @@ export default function Header() {
   };
 
   return (
-    <AppBar position="sticky" color="default" elevation={2} sx={{ mb: 4 }}>
+    <AppBar
+      position="sticky"
+      color="default"
+      elevation={2}
+      sx={{
+        mb: 4,
+        bgcolor: theme.palette.background.paper,
+        borderBottom: `2px solid ${theme.palette.primary.main}`,
+      }}
+    >
       <Toolbar>
         <Link href="/" style={{ textDecoration: "none", flexGrow: 1 }}>
           <Typography
@@ -72,7 +83,18 @@ export default function Header() {
           <IconButton color="primary" onClick={handleMenu}>
             <MenuIcon />
           </IconButton>
-          <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleClose}>
+          <Menu
+            anchorEl={anchorEl}
+            open={Boolean(anchorEl)}
+            onClose={handleClose}
+            PaperProps={{
+              sx: {
+                bgcolor: theme.palette.background.paper,
+                color: theme.palette.text.primary,
+                border: `1px solid ${theme.palette.primary.main}`,
+              },
+            }}
+          >
             {isLoggedIn ? (
               [
                 <MenuItem key="user" disabled>
@@ -113,6 +135,7 @@ export default function Header() {
                 variant="contained"
                 component={Link}
                 href="/login"
+                sx={{ fontWeight: "bold" }}
               >
                 Login
               </Button>
@@ -121,6 +144,7 @@ export default function Header() {
                 variant="outlined"
                 component={Link}
                 href="/register"
+                sx={{ fontWeight: "bold", borderWidth: 2 }}
               >
                 Registrar-se
               </Button>

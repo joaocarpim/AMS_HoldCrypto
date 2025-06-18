@@ -10,6 +10,7 @@ import CardActionArea from "@mui/material/CardActionArea";
 import Grow from "@mui/material/Grow";
 import Image from "next/image";
 import ChartBox from "../shared/components/ChartBox";
+import Carousel from "react-material-ui-carouseL"; 
 
 // Componentes customizados
 import Header from "../shared/components/Header";
@@ -26,12 +27,24 @@ const destaqueMoedas = [
   { name: "Bitcoin", symbol: "BTC", price: 252500, change: 2.5 },
   { name: "Ethereum", symbol: "ETH", price: 13500, change: -1.2 },
   { name: "BNB", symbol: "BNB", price: 2100, change: 0.8 },
+  { name: "Solana", symbol: "SOL", price: 900, change: 4.1 },
+  { name: "Polygon", symbol: "MATIC", price: 6.1, change: 0.3 },
+  { name: "Cardano", symbol: "ADA", price: 2.2, change: -2.4 },
+  { name: "XRP", symbol: "XRP", price: 3.5, change: 1.9 },
+  { name: "Dogecoin", symbol: "DOGE", price: 0.95, change: 7.8 },
 ];
 
 export default function Home() {
   const [selected, setSelected] = useState<number | null>(null);
   const [showInfo, setShowInfo] = useState(false);
   const router = useRouter();
+
+  // Organize as moedas em "páginas" de 3 moedas cada (para slides)
+  const coinsPerSlide = 3;
+  const slides = [];
+  for (let i = 0; i < destaqueMoedas.length; i += coinsPerSlide) {
+    slides.push(destaqueMoedas.slice(i, i + coinsPerSlide));
+  }
 
   return (
     <>
@@ -104,30 +117,46 @@ export default function Home() {
           </Collapse>
         </Box>
 
-        {/* Destaques de Moedas */}
+        {/* Destaques de Moedas - Carrossel */}
         <Box mb={6}>
           <Typography variant="h5" color="primary" fontWeight="bold" gutterBottom>
             Destaques do Mercado
           </Typography>
-          <Grid container spacing={3} justifyContent="center">
-            {destaqueMoedas.map((coin, idx) => (
-              <Grid item xs={12} sm={4} key={coin.symbol}>
-                <Grow in timeout={500 + idx * 200}>
-                  <Box>
-                    <CardActionArea onClick={() => setSelected(idx)}>
-                      <CoinHighlight
-                        name={coin.name}
-                        symbol={coin.symbol}
-                        price={coin.price}
-                        change={coin.change}
-                        selected={selected === idx}
-                      />
-                    </CardActionArea>
-                  </Box>
-                </Grow>
+          <Carousel
+            autoPlay={true}
+            interval={5000}
+            indicators={true}
+            navButtonsAlwaysVisible={true}
+            animation="slide"
+            duration={600}
+            sx={{
+              width: "100%",
+              ".MuiCarousel-root": { width: "100%" },
+              ".MuiButtonBase-root": { color: "#fcd34d" }
+            }}
+          >
+            {slides.map((coins, slideIdx) => (
+              <Grid container spacing={3} justifyContent="center" key={slideIdx}>
+                {coins.map((coin, idx) => (
+                  <Grid item xs={12} sm={4} key={coin.symbol}>
+                    <Grow in timeout={500 + idx * 200}>
+                      <Box>
+                        <CardActionArea onClick={() => setSelected(slideIdx * coinsPerSlide + idx)}>
+                          <CoinHighlight
+                            name={coin.name}
+                            symbol={coin.symbol}
+                            price={coin.price}
+                            change={coin.change}
+                            selected={selected === (slideIdx * coinsPerSlide + idx)}
+                          />
+                        </CardActionArea>
+                      </Box>
+                    </Grow>
+                  </Grid>
+                ))}
               </Grid>
             ))}
-          </Grid>
+          </Carousel>
         </Box>
 
         {/* Notícias Recentes e Gráfico */}

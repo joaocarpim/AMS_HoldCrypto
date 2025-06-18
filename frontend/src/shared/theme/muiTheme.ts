@@ -6,6 +6,11 @@ const muiTheme = createTheme({
     primary: { main: "#fcd34d" },
     background: { default: "#18181b", paper: "#23272f" },
     text: { primary: "#fff" },
+    divider: "#333",
+    success: { main: "#22c55e" },
+    error: { main: "#ef4444" },
+    warning: { main: "#fbbf24" },
+    info: { main: "#38bdf8" }
   },
   shape: {
     borderRadius: 16,

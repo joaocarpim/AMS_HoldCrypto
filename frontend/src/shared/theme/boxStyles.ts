@@ -17,6 +17,7 @@ export const authFormBox = {
   color: "#fff",
   mt: 8,
 };
+
 export const crudTableBox = {
   borderRadius: "24px",
   border: "2px solid #fcd34d",
