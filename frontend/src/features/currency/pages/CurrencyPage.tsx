@@ -1,4 +1,6 @@
+"use client";
 import React, { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { Currency } from "../types/Currency";
 import { getAllCurrencies, createCurrency, updateCurrency, deleteCurrency } from "../services/currencyService";
 import CurrencyForm from "../components/CurrencyForm";
@@ -48,6 +50,15 @@ const CurrencyPage: React.FC = () => {
   const [showHistoryId, setShowHistoryId] = useState<number | null>(null);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
+  const router = useRouter();
+
+  // Proteção de autenticação
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      router.push("/login");
+    }
+  }, [router]);
 
   const fetchCurrencies = async () => {
     const data = await getAllCurrencies();
