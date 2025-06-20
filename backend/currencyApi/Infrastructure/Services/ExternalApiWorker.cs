@@ -10,7 +10,7 @@ public class ExternalApiWorker : BackgroundService
 {
     private readonly IServiceProvider _serviceProvider;
     private readonly IHttpClientFactory _httpClientFactory;
-    private const int IntervalSeconds = 60;
+    private const int IntervalSeconds = 300;
     private const string _cryptoPricesUrl = "https://api.binance.com/api/v3/ticker/price";
 
     public ExternalApiWorker(IServiceProvider serviceProvider, IHttpClientFactory httpClientFactory)
