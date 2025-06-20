@@ -4326,11 +4326,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "D:\\AMS_HoldCryptoB.O2\\AMS_HoldCrypto\\backend\\balanceApi\\balanceApi.csproj",
+      "projectUniqueName": "C:\\Users\\gusta\\AMS_HoldCrypto\\backend\\balanceApi\\balanceApi.csproj",
       "projectName": "balanceApi",
-      "projectPath": "D:\\AMS_HoldCryptoB.O2\\AMS_HoldCrypto\\backend\\balanceApi\\balanceApi.csproj",
+      "projectPath": "C:\\Users\\gusta\\AMS_HoldCrypto\\backend\\balanceApi\\balanceApi.csproj",
       "packagesPath": "C:\\Users\\gusta\\.nuget\\packages\\",
-      "outputPath": "D:\\AMS_HoldCryptoB.O2\\AMS_HoldCrypto\\backend\\balanceApi\\obj\\",
+      "outputPath": "C:\\Users\\gusta\\AMS_HoldCrypto\\backend\\balanceApi\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"

@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "QSl2Y3y+/Pg=",
+  "dgSpecHash": "IY1mlI3QIOw=",
   "success": true,
-  "projectFilePath": "D:\\AMS_HoldCryptoB.O2\\AMS_HoldCrypto\\backend\\userApi\\userApi.csproj",
+  "projectFilePath": "C:\\Users\\gusta\\AMS_HoldCrypto\\backend\\userApi\\userApi.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\gusta\\.nuget\\packages\\bcrypt.net-next\\4.0.3\\bcrypt.net-next.4.0.3.nupkg.sha512",
     "C:\\Users\\gusta\\.nuget\\packages\\humanizer.core\\2.14.1\\humanizer.core.2.14.1.nupkg.sha512",

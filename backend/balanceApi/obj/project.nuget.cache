@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "4k2ajufxZoI=",
+  "dgSpecHash": "EoztrH6pvMM=",
   "success": true,
-  "projectFilePath": "D:\\AMS_HoldCryptoB.O2\\AMS_HoldCrypto\\backend\\balanceApi\\balanceApi.csproj",
+  "projectFilePath": "C:\\Users\\gusta\\AMS_HoldCrypto\\backend\\balanceApi\\balanceApi.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\gusta\\.nuget\\packages\\humanizer.core\\2.14.1\\humanizer.core.2.14.1.nupkg.sha512",
     "C:\\Users\\gusta\\.nuget\\packages\\microsoft.aspnetcore.cryptography.internal\\2.3.0\\microsoft.aspnetcore.cryptography.internal.2.3.0.nupkg.sha512",

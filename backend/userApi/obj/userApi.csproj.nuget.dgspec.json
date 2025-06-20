@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "D:\\AMS_HoldCryptoB.O2\\AMS_HoldCrypto\\backend\\userApi\\userApi.csproj": {}
+    "C:\\Users\\gusta\\AMS_HoldCrypto\\backend\\userApi\\userApi.csproj": {}
   },
   "projects": {
-    "D:\\AMS_HoldCryptoB.O2\\AMS_HoldCrypto\\backend\\userApi\\userApi.csproj": {
+    "C:\\Users\\gusta\\AMS_HoldCrypto\\backend\\userApi\\userApi.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "D:\\AMS_HoldCryptoB.O2\\AMS_HoldCrypto\\backend\\userApi\\userApi.csproj",
+        "projectUniqueName": "C:\\Users\\gusta\\AMS_HoldCrypto\\backend\\userApi\\userApi.csproj",
         "projectName": "userApi",
-        "projectPath": "D:\\AMS_HoldCryptoB.O2\\AMS_HoldCrypto\\backend\\userApi\\userApi.csproj",
+        "projectPath": "C:\\Users\\gusta\\AMS_HoldCrypto\\backend\\userApi\\userApi.csproj",
         "packagesPath": "C:\\Users\\gusta\\.nuget\\packages\\",
-        "outputPath": "D:\\AMS_HoldCryptoB.O2\\AMS_HoldCrypto\\backend\\userApi\\obj\\",
+        "outputPath": "C:\\Users\\gusta\\AMS_HoldCrypto\\backend\\userApi\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
