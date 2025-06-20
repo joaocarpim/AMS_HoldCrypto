@@ -13,16 +13,6 @@ export const metadata: Metadata = {
 export default function RootLayout({
   children,
 }: {
-<<<<<<< HEAD
-  children: React.ReactNode
-}) {
-  return (
-    <html lang="en">
-      <body className={inter.className}>{children}</body>
-    </html>
-  )
-}
-=======
   children: React.ReactNode;
 }) {
   return (
@@ -35,4 +25,3 @@ export default function RootLayout({
     </html>
   );
 }
->>>>>>> release/2.0.0
