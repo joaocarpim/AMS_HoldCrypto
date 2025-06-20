@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 // src/app/create-user/page.tsx
 "use client";
 
@@ -23,3 +24,9 @@ export default function CreateUserPage() {
       </div>
     );
   }
+=======
+import UserCrudPage from "@/features/user/pages/CreateUsersPage";
+export default function CreateUserPage() {
+  return <UserCrudPage />;
+}
+>>>>>>> release/2.0.0

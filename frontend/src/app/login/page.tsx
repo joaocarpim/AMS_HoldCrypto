@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 'use client';
 
 import React, { useState } from 'react';
@@ -78,3 +79,7 @@ export default function LoginPage() {
     </>
   );
 }
+=======
+import LoginPage from "@/features/auth/LoginPage";
+export default LoginPage;
+>>>>>>> release/2.0.0

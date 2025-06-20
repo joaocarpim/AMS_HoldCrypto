@@ -1,6 +1,9 @@
 using Microsoft.OpenApi.Models;
 using Microsoft.EntityFrameworkCore;
+<<<<<<< HEAD
 using Microsoft.OpenApi.Models;
+=======
+>>>>>>> release/2.0.0
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
