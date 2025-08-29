@@ -6,7 +6,7 @@
       "DownstreamHostAndPorts": [
         {
           "Host": "localhost",
-          "Port": 5106
+          "Port": 5294
         }
       ],
       "UpstreamPathTemplate": "/auth/login",
@@ -18,7 +18,7 @@
       "DownstreamHostAndPorts": [
         {
           "Host": "localhost",
-          "Port": 5106
+          "Port": 5294
         }
       ],
       "UpstreamPathTemplate": "/auth/profile",
@@ -33,11 +33,15 @@
       "DownstreamHostAndPorts": [
         {
           "Host": "localhost",
-          "Port": 5106
+          "Port": 5294
         }
       ],
       "UpstreamPathTemplate": "/user",
-      "UpstreamHttpMethod": [ "POST", "GET" ]
+      "UpstreamHttpMethod": [ "POST", "GET" ],
+       "AuthenticationOptions": {
+        "AuthenticationProviderKey": "Bearer",
+        "AllowedScopes": []
+      }
     },
     {
       "DownstreamPathTemplate": "/api/User/{id}",
@@ -45,11 +49,15 @@
       "DownstreamHostAndPorts": [
         {
           "Host": "localhost",
-          "Port": 5106
+          "Port": 5294
         }
       ],
       "UpstreamPathTemplate": "/user/{id}",
-      "UpstreamHttpMethod": [ "GET", "PUT", "DELETE" ]
+      "UpstreamHttpMethod": [ "GET", "PUT", "DELETE" ],
+       "AuthenticationOptions": {
+        "AuthenticationProviderKey": "Bearer",
+        "AllowedScopes": []
+      }
     },
 
     {
