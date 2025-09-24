@@ -1,0 +1,30 @@
+name: .NET Build and Test
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout código
+      uses: actions/checkout@v3
+
+    - name: Configurar .NET
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: '9.0.x' 
+
+    - name: Restaurar pacotes
+      run: dotnet restore AMS_HoldCrypto.sln
+
+    - name: Build do projeto
+      run: dotnet build AMS_HoldCrypto.sln --configuration Release --no-restore
+
+    - name: Testes (se houver)
+      run: dotnet test AMS_HoldCrypto.sln --no-build --verbosity normal
