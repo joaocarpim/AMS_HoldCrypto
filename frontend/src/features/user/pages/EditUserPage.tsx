@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+// 1. Importe o hook 'useParams' para ler os parâmetros da URL
+import { useRouter, useParams } from "next/navigation";
 import UserForm from "@/features/user/components/UserForm";
 import { UserFormValues } from "@/features/user/types/UserFormValues";
 import { userService, User } from "@/features/user/services/userService";
@@ -12,18 +13,24 @@ import Typography from "@mui/material/Typography";
 import CircularProgress from "@mui/material/CircularProgress";
 import { yellowBorderBox } from "@/shared/theme/boxStyles";
 
-// A página recebe os parâmetros da URL, que incluem o 'id' do usuário.
-export default function EditUserPage({ params }: { params: { id: string } }) {
+// 2. O componente não precisa mais receber 'params' como prop
+export default function EditUserPage() {
   const router = useRouter();
-  const { id } = params; // Extrai o id dos parâmetros
+  const params = useParams(); // 3. Use o hook para obter os parâmetros
+  const id = params.id as string; // O 'id' vem do nome do arquivo [id]
 
   const [initialValues, setInitialValues] = useState<UserFormValues | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    // Esta verificação agora garante que o hook já retornou o id
+    if (!id) {
+      return;
+    }
+
     const userId = Number(id);
-    if (!id || isNaN(userId)) {
+    if (isNaN(userId)) {
       setError("ID de usuário inválido.");
       setLoading(false);
       return;
@@ -33,10 +40,8 @@ export default function EditUserPage({ params }: { params: { id: string } }) {
       try {
         const user: User = await userService.getById(userId);
         const { name, email, phone, address, photo } = user;
-        // Preenche o formulário com os dados do usuário. A senha fica em branco por segurança.
         setInitialValues({ name, email, phone, address, password: "", photo });
       } catch (err: any) {
-        console.error("Erro ao buscar usuário:", err);
         setError(err.response?.data?.message || "Não foi possível carregar o usuário.");
       } finally {
         setLoading(false);
@@ -44,13 +49,12 @@ export default function EditUserPage({ params }: { params: { id: string } }) {
     };
     
     fetchUser();
-  }, [id]);
+  }, [id]); // O useEffect será re-executado quando o 'id' estiver disponível
 
   const handleSubmit = async (values: UserFormValues) => {
     try {
       const userId = Number(id);
       
-      // Lógica para não enviar a senha se o campo estiver vazio
       const dataToUpdate: Partial<UserFormValues> = { ...values };
       if (!dataToUpdate.password?.trim()) {
         delete dataToUpdate.password;
@@ -116,3 +120,4 @@ export default function EditUserPage({ params }: { params: { id: string } }) {
     </Box>
   );
 }
+

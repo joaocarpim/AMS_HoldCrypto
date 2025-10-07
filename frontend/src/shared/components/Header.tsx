@@ -120,7 +120,7 @@ export default function Header() {
         <Box sx={{ display: { xs: "none", md: "flex" }, alignItems: "center", gap: 2 }}>
           {isLoggedIn ? (
             <>
-              <Avatar sx={{ bgcolor: 'primary.main', width: 32, height: 32 }}>
+              <Avatar sx={{ bgcolor: 'primary.main', width: 32, height: 32, color: '#0B0B0B', fontWeight: 'bold' }}>
                 {userName.charAt(0)}
               </Avatar>
               <Typography color="text.primary" fontWeight="500">
@@ -162,3 +162,4 @@ export default function Header() {
     </AppBar>
   );
 }
+

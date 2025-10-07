@@ -45,7 +45,6 @@ export default function Footer() {
             <Box component="ul" sx={{ listStyle: 'none', p: 0, m: 0 }}>
               {footerLinks.map((link) => (
                 <Box component="li" key={link.text} sx={{ mb: 1 }}>
-                  {/* CORREÇÃO: Usando o padrão moderno de integração do Next.js com MUI */}
                   <Typography
                     component={Link}
                     href={link.href}
@@ -83,3 +82,4 @@ export default function Footer() {
     </Box>
   );
 }
+

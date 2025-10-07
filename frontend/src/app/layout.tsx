@@ -1,26 +1,29 @@
-import type { Metadata } from 'next';
-import { Inter } from 'next/font/google';
-import './styles/globals.css';
-import MuiProvider from './mui-provider';
+import type { Metadata } from "next";
+import { Inter } from "next/font/google";
+import "./styles/globals.css";
 
-const inter = Inter({ subsets: ['latin'] });
+// CORREÇÃO: Usando um caminho relativo para garantir que o módulo seja encontrado.
+import { ThemeProvider } from "../shared/theme/ThemeProvider";
+
+const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: 'AMS HoldCrypto',
-  description: 'Sua plataforma de criptomoedas',
+  title: "AMS HoldCrypto",
+  description: "Sua plataforma completa para o universo cripto.",
 };
 
 export default function RootLayout({
   children,
-}:{
+}: Readonly<{
   children: React.ReactNode;
-}) {
+}>) {
   return (
-    <html lang="pt-BR">
+    <html lang="pt-br">
       <body className={inter.className}>
-        <MuiProvider>
+        {/* Envolva todo o conteúdo (children) com o ThemeProvider */}
+        <ThemeProvider>
           {children}
-        </MuiProvider>
+        </ThemeProvider>
       </body>
     </html>
   );
