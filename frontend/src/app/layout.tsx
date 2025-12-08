@@ -1,15 +1,14 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
-import "./styles/globals.css";
-
-// CORREÇÃO: Usando um caminho relativo para garantir que o módulo seja encontrado.
-import { ThemeProvider } from "../shared/theme/ThemeProvider";
+import "./globals.css";
+// IMPORTANTE: Trazendo o provedor de volta
+import { NotificationProvider } from "@/shared/context/NotificationContext"; 
 
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "AMS HoldCrypto",
-  description: "Sua plataforma completa para o universo cripto.",
+  title: "HoldCrypto",
+  description: "Plataforma de Trading de Criptomoedas",
 };
 
 export default function RootLayout({
@@ -18,14 +17,13 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="pt-br">
+    <html lang="pt-BR">
       <body className={inter.className}>
-        {/* Envolva todo o conteúdo (children) com o ThemeProvider */}
-        <ThemeProvider>
+        {/* Envolvemos o app com o provedor de notificações */}
+        <NotificationProvider>
           {children}
-        </ThemeProvider>
+        </NotificationProvider>
       </body>
     </html>
   );
 }
-

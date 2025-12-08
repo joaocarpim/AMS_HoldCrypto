@@ -1,3 +1,46 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+:root {
+  --background-start: #0f172a; /* Slate 900 */
+  --background-end: #020617;   /* Slate 950 */
+  --accent-glow: rgba(240, 185, 11, 0.15); /* Amarelo Binance Glow */
+}
+
+body {
+  color: #fff;
+  background: radial-gradient(circle at 50% 0%, var(--background-start), var(--background-end));
+  min-height: 100vh;
+  font-feature-settings: "ss01", "ss02", "cv01", "cv02"; /* Fontes mais técnicas */
+}
+
+/* Scrollbar estilo Hacker/Trader */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #0b0b0b; 
+}
+::-webkit-scrollbar-thumb {
+  background: #333; 
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #F0B90B; 
+}
+
+/* Utilitário para Glassmorphism (Vidro) */
+.glass-panel {
+  background: rgba(30, 41, 59, 0.4); /* Slate com transparência */
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+}
+
+/* Efeito de Neon suave para textos */
+.text-glow {
+  text-shadow: 0 0 20px rgba(240, 185, 11, 0.5);
+}

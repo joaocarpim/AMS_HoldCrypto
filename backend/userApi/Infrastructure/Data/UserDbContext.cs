@@ -1,7 +1,13 @@
 using Microsoft.EntityFrameworkCore;
+using UserApi.Domain.Entities; 
 
-public class UserDbContext : DbContext
+// O namespace PRECISA ser exatamente este para o UserRepository encontrar:
+namespace UserApi.Infrastructure.Data
 {
-    public UserDbContext(DbContextOptions<UserDbContext> options) : base(options) { }
-    public DbSet<User> Users { get; set; }
+    public class UserDbContext : DbContext
+    {
+        public UserDbContext(DbContextOptions<UserDbContext> options) : base(options) { }
+
+        public DbSet<User> Users { get; set; }
+    }
 }

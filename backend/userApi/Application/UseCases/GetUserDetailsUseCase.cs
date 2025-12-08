@@ -1,11 +1,20 @@
-public class GetUserDetailsUseCase
+using UserApi.API.DTOs; // <--- O SEGREDO ESTÁ AQUI
+using UserApi.Application.Interfaces;
+
+namespace UserApi.Application.UseCases
 {
-    private readonly IUserService _userService;
-
-    public GetUserDetailsUseCase(IUserService userService)
+    public class GetUserDetailsUseCase
     {
-        _userService = userService;
-    }
+        private readonly IUserService _userService;
 
-    public UserDTO? Execute(int id) => _userService.GetUserDetails(id);
+        public GetUserDetailsUseCase(IUserService userService)
+        {
+            _userService = userService;
+        }
+
+        public UserDTO? Execute(int id)
+        {
+            return _userService.GetUserDetails(id);
+        }
+    }
 }

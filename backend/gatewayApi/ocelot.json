@@ -1,6 +1,7 @@
 {
   "Routes": [
     
+    
     {
       "DownstreamPathTemplate": "/api/auth/login",
       "DownstreamScheme": "http",
@@ -23,7 +24,7 @@
       "UpstreamHttpMethod": [ "GET" ]
     },
 
-
+  
     {
       "DownstreamPathTemplate": "/api/auth/profile",
       "DownstreamScheme": "http",
@@ -85,6 +86,75 @@
       "DownstreamHostAndPorts": [ { "Host": "localhost", "Port": 5105 } ],
       "UpstreamPathTemplate": "/history/{id}",
       "UpstreamHttpMethod": [ "GET", "PUT", "DELETE" ],
+      "AuthenticationOptions": {
+        "AuthenticationProviderKey": "Bearer",
+        "AllowedScopes": []
+      }
+    },
+
+   
+    
+    {
+      "DownstreamPathTemplate": "/api/Wallet",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [ { "Host": "localhost", "Port": 5129 } ], 
+      "UpstreamPathTemplate": "/wallet", 
+      "UpstreamHttpMethod": [ "GET", "POST" ], 
+      "AuthenticationOptions": {
+        "AuthenticationProviderKey": "Bearer",
+        "AllowedScopes": []
+      }
+    },
+    {
+      "DownstreamPathTemplate": "/api/Wallet/{id}/deposit",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [ { "Host": "localhost", "Port": 5129 } ],
+      "UpstreamPathTemplate": "/wallet/{id}/deposit",
+      "UpstreamHttpMethod": [ "POST" ],
+      "AuthenticationOptions": {
+        "AuthenticationProviderKey": "Bearer",
+        "AllowedScopes": []
+      }
+    },
+    {
+      "DownstreamPathTemplate": "/api/Wallet/{id}/withdraw",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [ { "Host": "localhost", "Port": 5129 } ],
+      "UpstreamPathTemplate": "/wallet/{id}/withdraw",
+      "UpstreamHttpMethod": [ "POST" ],
+      "AuthenticationOptions": {
+        "AuthenticationProviderKey": "Bearer",
+        "AllowedScopes": []
+      }
+    },
+    {
+      "DownstreamPathTemplate": "/api/Wallet/transfer",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [ { "Host": "localhost", "Port": 5129 } ],
+      "UpstreamPathTemplate": "/wallet/transfer",
+      "UpstreamHttpMethod": [ "POST" ],
+      "AuthenticationOptions": {
+        "AuthenticationProviderKey": "Bearer",
+        "AllowedScopes": []
+      }
+    },
+    {
+      "DownstreamPathTemplate": "/api/Wallet/trade",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [ { "Host": "localhost", "Port": 5129 } ],
+      "UpstreamPathTemplate": "/wallet/trade",
+      "UpstreamHttpMethod": [ "POST" ],
+      "AuthenticationOptions": {
+        "AuthenticationProviderKey": "Bearer",
+        "AllowedScopes": []
+      }
+    },
+    {
+      "DownstreamPathTemplate": "/api/Wallet/history",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [ { "Host": "localhost", "Port": 5129 } ],
+      "UpstreamPathTemplate": "/wallet/history",
+      "UpstreamHttpMethod": [ "GET" ],
       "AuthenticationOptions": {
         "AuthenticationProviderKey": "Bearer",
         "AllowedScopes": []

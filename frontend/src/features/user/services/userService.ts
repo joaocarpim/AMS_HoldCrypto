@@ -5,10 +5,19 @@ export interface User {
   id: number;
   name: string;
   email: string;
+  
+  // --- NOVO CAMPO ADICIONADO ---
+  // Essencial para esconder/mostrar o menu de admin
+  role: string; 
+  // -----------------------------
+
   password?: string;
-  photo: string;
-  phone: string;
-  address: string;
+  
+  // Dica: Como deixamos opcional no backend, é bom por '?' aqui também
+  // para evitar erros se vier nulo do banco
+  photo?: string; 
+  phone?: string;
+  address?: string;
 }
 
 const userServiceObject = {
@@ -25,7 +34,9 @@ const userServiceObject = {
     return response.data;
   },
 
-  create: async (user: Omit<User, 'id'>): Promise<User> => {
+  create: async (user: Omit<User, 'id' | 'role'>): Promise<User> => {
+    // Note que removemos 'role' do Omit, pois o front não deve enviar o role na criação,
+    // o backend força "user" automaticamente.
     const response = await apiClient.post(userAPI.create(), user);
     return response.data;
   },
@@ -46,5 +57,4 @@ const userServiceObject = {
   },
 };
 
-// CORREÇÃO: Usando exportação nomeada em vez de default
 export const userService = userServiceObject;

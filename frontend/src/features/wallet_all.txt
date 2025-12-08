@@ -1,0 +1,633 @@
+==== C:\dev\AMS_HoldCrypto\frontend\src\features\wallet\components\CreateWalletModal.tsx ====
+// Caminho: frontend/src/features/wallet/components/CreateWalletModal.tsx
+'use client';
+
+import React, { useState } from 'react';
+import Modal from '@/shared/components/Modal';
+import { Box } from '@mui/material';
+
+// 1. Importar o formulário E a interface WalletFormValues (o que o form envia)
+import WalletForm, { WalletFormValues } from './WalletForm';
+
+// 2. Importar o DTO de criação (para verificar o tipo final)
+import { CreateWalletDTO } from '../services/walletService';
+
+import { useAuthStore } from '@/features/auth/store/useAuthStore';
+import walletService from '../services/walletService';
+import { useDashboardActions } from '@/features/dashboard/store/DashboardStore';
+import { useNotification } from '@/shared/context/NotificationContext';
+
+interface CreateWalletModalProps {
+  open: boolean;
+  onClose: () => void;
+}
+
+const CreateWalletModal: React.FC<CreateWalletModalProps> = ({ open, onClose }) => {
+  const { user } = useAuthStore();
+  const { fetchDashboardData } = useDashboardActions();
+  const { showNotification } = useNotification();
+  const [isLoading, setIsLoading] = useState(false);
+
+  // 3. ASSINATURA CORRIGIDA:
+  // Recebe 'values' no formato que o WalletForm envia
+  const handleSubmit = async (values: WalletFormValues & { balance: 0 }) => {
+    
+    // 4. Verifica o userId
+    if (!user.id) {
+        showNotification("Erro: ID do usuário não encontrado. Faça login novamente.", "error");
+        return;
+    }
+    
+    // 5. Monta o DTO completo aqui, adicionando o userId
+    const walletDataToSend: CreateWalletDTO = { 
+        ...values, // Contém name, category, currencySymbol, balance: 0
+        userId: user.id // Adiciona o userId
+    };
+    
+    setIsLoading(true);
+    console.log("Creating wallet with data:", walletDataToSend);
+    try {
+        // Envia o DTO completo para o serviço
+        await walletService.createWallet(walletDataToSend);
+        
+        showNotification(`Carteira "${values.name}" criada com sucesso!`, "success");
+        fetchDashboardData(); // Rebusca dados do dashboard
+        onClose(); // Fecha o modal
+    } catch (error: any) {
+        console.error("Failed to create wallet:", error);
+        showNotification(error.response?.data?.message || "Erro desconhecido ao criar carteira.", "error");
+    } finally {
+        setIsLoading(false);
+    }
+  };
+
+  return (
+    <Modal open={open} onClose={onClose} title="Criar Nova Carteira">
+      <WalletForm
+          onSubmit={handleSubmit} // Agora os tipos são compatíveis
+          isLoading={isLoading}
+          onCancel={onClose}
+      />
+    </Modal>
+  );
+};
+
+export default CreateWalletModal;
+
+---- end of file ----
+
+==== C:\dev\AMS_HoldCrypto\frontend\src\features\wallet\components\DepositForm.tsx ====
+// Caminho: frontend/src/features/wallet/components/DepositForm.tsx
+'use client';
+
+import React, { useState } from 'react';
+import { TextField, Button, Stack, CircularProgress, Box } from '@mui/material';
+import { yellowField } from '@/shared/theme/fieldStyles';
+
+export interface DepositFormValues {
+  amount: number;
+}
+
+interface DepositFormProps {
+  onSubmit: (values: DepositFormValues) => Promise<void>;
+  isLoading?: boolean;
+  onCancel: () => void;
+  currencySymbol: string; // Para exibir "Valor (BRL)"
+}
+
+const DepositForm: React.FC<DepositFormProps> = ({ onSubmit, isLoading, onCancel, currencySymbol }) => {
+  const [amount, setAmount] = useState<number | string>(''); // Usar string para controlo de input
+  const [error, setError] = useState<string | null>(null);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    // Permite números e um único ponto decimal
+    if (value === '' || /^\d*\.?\d*$/.test(value)) {
+      setAmount(value);
+      setError(null);
+    }
+  };
+
+  const validate = (): boolean => {
+    const numericAmount = Number(amount);
+    if (isNaN(numericAmount) || numericAmount <= 0) {
+      setError('O valor deve ser um número positivo.');
+      return false;
+    }
+    setError(null);
+    return true;
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!validate()) return;
+    await onSubmit({ amount: Number(amount) });
+  };
+
+  return (
+    <Box component="form" onSubmit={handleSubmit} sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+      <TextField
+        name="amount"
+        label={`Valor a Depositar (${currencySymbol})`}
+        type="text" // Usar 'text' para melhor controlo do input decimal, validamos manualmente
+        value={amount}
+        onChange={handleChange}
+        required
+        fullWidth
+        sx={yellowField}
+        error={!!error}
+        helperText={error || "Ex: 1000.50"}
+        disabled={isLoading}
+        autoFocus // Foca neste campo quando o modal abre
+      />
+      <Stack direction="row" spacing={2} justifyContent="flex-end" sx={{ mt: 1 }}>
+         <Button
+           type="button"
+           variant="outlined"
+           color="inherit"
+           onClick={onCancel}
+           disabled={isLoading}
+           sx={{ borderColor: '#ccc', color: '#ccc' }}
+         >
+           Cancelar
+         </Button>
+        <Button
+            type="submit"
+            variant="contained"
+            color="primary"
+            disabled={isLoading}
+            sx={{ minWidth: 120 }}
+        >
+            {isLoading ? <CircularProgress size={24} color="inherit" /> : 'Depositar'}
+        </Button>
+      </Stack>
+    </Box>
+  );
+};
+
+export default DepositForm;
+
+---- end of file ----
+
+==== C:\dev\AMS_HoldCrypto\frontend\src\features\wallet\components\DepositModal.tsx ====
+// Caminho: frontend/src/features/wallet/components/DepositModal.tsx
+'use client';
+
+import React, { useState } from 'react';
+import Modal from '@/shared/components/Modal';
+import DepositForm, { DepositFormValues } from './DepositForm';
+import { Wallet } from '../services/walletService'; // Importar a interface Wallet
+import { useAuthStore } from '@/features/auth/store/useAuthStore';
+import walletService from '../services/walletService';
+import { useDashboardActions } from '@/features/dashboard/store/DashboardStore';
+import { useNotification } from '@/shared/context/NotificationContext';
+import { Typography } from '@mui/material';
+
+interface DepositModalProps {
+  open: boolean;
+  onClose: () => void;
+  wallet: Wallet | null; // A carteira na qual depositar
+}
+
+const DepositModal: React.FC<DepositModalProps> = ({ open, onClose, wallet }) => {
+  const { fetchDashboardData } = useDashboardActions();
+  const { showNotification } = useNotification();
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleSubmit = async (values: DepositFormValues) => {
+    if (!wallet) {
+        showNotification("Erro: Carteira não selecionada.", "error");
+        return;
+    }
+    
+    setIsLoading(true);
+    console.log(`DepositModal: Attempting to deposit ${values.amount} into wallet ${wallet.id}`);
+    try {
+        await walletService.deposit(wallet.id, { amount: values.amount });
+        
+        showNotification(`Depósito de ${values.amount} ${wallet.currencySymbol} realizado com sucesso!`, "success");
+        fetchDashboardData(); // Rebusca dados do dashboard (atualiza saldos)
+        onClose(); // Fecha o modal
+    } catch (error: any) {
+        console.error("Failed to deposit:", error);
+        showNotification(error.response?.data?.message || "Erro desconhecido ao realizar depósito.", "error");
+    } finally {
+        setIsLoading(false);
+    }
+  };
+
+  // Se 'wallet' for nulo, não renderiza nada (segurança)
+  if (!wallet) return null;
+
+  return (
+    <Modal open={open} onClose={onClose} title={`Depositar em ${wallet.name} (${wallet.currencySymbol})`}>
+       <DepositForm
+          onSubmit={handleSubmit}
+          isLoading={isLoading}
+          onCancel={onClose}
+          currencySymbol={wallet.currencySymbol} // Passa o símbolo para o formulário
+      />
+    </Modal>
+  );
+};
+
+export default DepositModal;
+
+---- end of file ----
+
+==== C:\dev\AMS_HoldCrypto\frontend\src\features\wallet\components\TransactionsTable.tsx ====
+import React from 'react';
+import { WalletTransaction } from '@/features/wallet/services/walletService';
+import { ArrowDownLeft, ArrowUpRight, RefreshCw, AlertCircle } from 'lucide-react';
+
+interface Props {
+  transactions: WalletTransaction[];
+}
+
+const TransactionsTable: React.FC<Props> = ({ transactions }) => {
+  
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('pt-BR', {
+      day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit'
+    });
+  };
+
+  const getTxStyles = (type: number) => {
+    switch (type) {
+      case 0: // Depósito
+        return { 
+          label: 'Depósito', 
+          colorClass: 'text-emerald-400', 
+          bgClass: 'bg-emerald-400/10',
+          icon: <ArrowDownLeft size={18} />
+        };
+      case 1: // Saque
+        return { 
+          label: 'Saque', 
+          colorClass: 'text-rose-400', 
+          bgClass: 'bg-rose-400/10',
+          icon: <ArrowUpRight size={18} />
+        };
+      case 2: // Trade/Transferência
+        return { 
+          label: 'Trade', 
+          colorClass: 'text-blue-400', 
+          bgClass: 'bg-blue-400/10',
+          icon: <RefreshCw size={18} />
+        };
+      default: 
+        return { label: 'Outro', colorClass: 'text-gray-400', bgClass: 'bg-gray-700', icon: <AlertCircle size={18} /> };
+    }
+  };
+
+  if (!transactions || transactions.length === 0) {
+    return (
+      <div className="mt-8 p-8 text-center bg-[#1E1E1E] rounded-3xl border border-gray-800 shadow-sm">
+        <p className="text-gray-500 font-medium">Nenhuma transação encontrada no histórico.</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="mt-8 bg-[#1E1E1E] rounded-3xl border border-gray-800 shadow-xl overflow-hidden">
+      <div className="p-6 border-b border-gray-800 flex justify-between items-center">
+        <h3 className="text-lg font-bold text-white flex items-center gap-2">
+          <span className="w-2 h-6 bg-yellow-500 rounded-full"></span>
+          Histórico Recente
+        </h3>
+        <span className="text-xs text-gray-500 uppercase tracking-wider font-bold bg-gray-900 px-3 py-1 rounded-full border border-gray-800">Extrato</span>
+      </div>
+      
+      <div className="overflow-x-auto">
+        <table className="w-full text-left border-collapse">
+          <thead>
+            <tr className="bg-gray-900/50 text-gray-400 text-xs uppercase tracking-wider">
+              <th className="p-4 font-semibold pl-6">Tipo</th>
+              <th className="p-4 font-semibold">Data</th>
+              <th className="p-4 font-semibold">Detalhes</th>
+              <th className="p-4 font-semibold text-right pr-6">Valor</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-800">
+            {transactions.map((tx) => {
+              const style = getTxStyles(tx.type);
+              return (
+                <tr key={tx.id} className="hover:bg-gray-800/50 transition-colors duration-200 group">
+                  <td className="p-4 pl-6">
+                    <div className="flex items-center gap-3">
+                      <div className={`p-2.5 rounded-xl ${style.bgClass} ${style.colorClass} group-hover:scale-110 transition-transform duration-200 shadow-sm`}>
+                        {style.icon}
+                      </div>
+                      <span className={`font-semibold ${style.colorClass}`}>{style.label}</span>
+                    </div>
+                  </td>
+                  <td className="p-4 text-gray-400 text-sm font-mono tracking-tight">
+                    {formatDate(tx.createdAt)}
+                  </td>
+                  <td className="p-4">
+                    <span className="text-gray-300 text-sm font-medium">{tx.notes}</span>
+                    <div className="text-[10px] text-gray-600 mt-0.5 uppercase tracking-widest font-bold">ID: #{tx.id}</div>
+                  </td>
+                  <td className="p-4 text-right pr-6">
+                    <span className={`font-mono font-bold text-lg ${style.colorClass}`}>
+                      {tx.type === 1 ? '-' : '+'}{Number(tx.amount).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 8 })}
+                      <span className="text-gray-500 ml-1.5 text-xs font-sans font-bold">{tx.currencySymbol}</span>
+                    </span>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+};
+
+export default TransactionsTable;
+
+---- end of file ----
+
+==== C:\dev\AMS_HoldCrypto\frontend\src\features\wallet\components\WalletForm.tsx ====
+// Caminho: frontend/src/features/wallet/components/WalletForm.tsx
+'use client';
+
+import React, { useState, useEffect } from 'react';
+import { TextField, Button, MenuItem, Stack, CircularProgress, Box, Typography } from '@mui/material';
+import { WalletCategory } from '../services/walletService';
+import { yellowField } from '@/shared/theme/fieldStyles';
+import { useDashboardCurrencies } from '@/features/dashboard/store/DashboardStore';
+
+// Interface de valores (REMOVIDO 'balance')
+export interface WalletFormValues {
+  name: string;
+  category: WalletCategory;
+  currencySymbol: string;
+}
+
+interface WalletFormProps {
+  // Ação de submit agora espera 'balance: 0'
+  onSubmit: (values: WalletFormValues & { balance: 0 }) => Promise<void>;
+  isLoading?: boolean;
+  onCancel?: () => void;
+}
+
+const categoryOptions: WalletCategory[] = ["Spot", "Funding", "Overview"];
+
+const WalletForm: React.FC<WalletFormProps> = ({ onSubmit, isLoading, onCancel }) => {
+  const availableCurrencies = useDashboardCurrencies();
+
+  const [values, setValues] = useState<WalletFormValues>({
+    name: '',
+    category: 'Spot',
+    currencySymbol: '',
+  });
+  const [errors, setErrors] = useState<{ name?: string, currencySymbol?: string }>({});
+
+  // useEffect para definir moeda padrão (corrigido)
+  useEffect(() => {
+    if (availableCurrencies.length > 0) {
+      setValues((currentValues) => {
+        if (!currentValues.currencySymbol && availableCurrencies[0]?.symbol) {
+          return { ...currentValues, currencySymbol: availableCurrencies[0].symbol };
+        }
+        return currentValues;
+      });
+    }
+  }, [availableCurrencies]);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setValues((prev) => ({
+      ...prev,
+      [name]: value, // Removida lógica de 'balance'
+    }));
+    // Limpa erros
+    if (name === 'name' && errors.name) {
+        setErrors(prev => ({ ...prev, name: undefined }));
+    }
+    if (name === 'currencySymbol' && errors.currencySymbol) {
+         setErrors(prev => ({ ...prev, currencySymbol: undefined }));
+    }
+  };
+
+  const validate = (): boolean => {
+      const newErrors: { name?: string, currencySymbol?: string } = {};
+      if (!values.name.trim()) {
+          newErrors.name = 'O nome da carteira é obrigatório.';
+      }
+      if (!values.currencySymbol) {
+           newErrors.currencySymbol = 'Selecione a moeda.';
+      }
+      setErrors(newErrors);
+      return Object.keys(newErrors).length === 0;
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!validate()) return;
+    
+    // *** ALTERAÇÃO CRÍTICA: Envia sempre balance: 0 ***
+    await onSubmit({ ...values, balance: 0 });
+  };
+
+  return (
+    <Box component="form" onSubmit={handleSubmit} sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+      {/* Campo Nome */}
+      <TextField
+        name="name"
+        label="Nome da Carteira"
+        placeholder='Ex: "Minha Carteira Bitcoin" ou "Conta Spot"'
+        value={values.name}
+        onChange={handleChange}
+        required
+        fullWidth
+        sx={yellowField}
+        error={!!errors.name}
+        helperText={errors.name}
+        disabled={isLoading}
+      />
+
+      {/* Campo Select para Moeda */}
+      <TextField
+        select
+        name="currencySymbol"
+        label="Moeda"
+        value={values.currencySymbol}
+        onChange={handleChange}
+        required
+        fullWidth
+        sx={yellowField}
+        error={!!errors.currencySymbol}
+        helperText={errors.currencySymbol}
+        disabled={isLoading || availableCurrencies.length === 0}
+      >
+        {!values.currencySymbol && <MenuItem value="" disabled>Selecione...</MenuItem>}
+        {availableCurrencies.length === 0 && <MenuItem value="" disabled>Carregando moedas...</MenuItem>}
+        {availableCurrencies.map((currency) => (
+          <MenuItem key={currency.id ?? currency.symbol} value={currency.symbol}>
+            <Box component="span" sx={{ fontWeight: 'bold' }}>{currency.name}</Box>
+            <Box component="span" sx={{ color: 'text.secondary', ml: 0.5 }}>({currency.symbol})</Box>
+          </MenuItem>
+        ))}
+      </TextField>
+
+      {/* Campo Categoria */}
+      <TextField
+        select
+        name="category"
+        label="Categoria"
+        value={values.category}
+        onChange={handleChange}
+        required
+        fullWidth
+        sx={yellowField}
+        disabled={isLoading}
+      >
+        {categoryOptions.map((option) => (
+          <MenuItem key={option} value={option}>
+            {option}
+          </MenuItem>
+        ))}
+      </TextField>
+
+      {/* *** CAMPO SALDO INICIAL REMOVIDO *** */}
+      
+      {/* Botões */}
+      <Stack direction="row" spacing={2} justifyContent="flex-end" sx={{ mt: 1 }}>
+         {onCancel && (
+            <Button
+              type="button"
+              variant="outlined"
+              color="inherit"
+              onClick={onCancel}
+              disabled={isLoading}
+              sx={{ borderColor: '#ccc', color: '#ccc' }}
+            >
+              Cancelar
+            </Button>
+          )}
+        <Button
+            type="submit"
+            variant="contained"
+            color="primary"
+            disabled={isLoading}
+            sx={{ minWidth: 120 }}
+        >
+            {isLoading ? <CircularProgress size={24} color="inherit" /> : 'Criar Carteira'}
+        </Button>
+      </Stack>
+    </Box>
+  );
+};
+
+export default WalletForm;
+
+---- end of file ----
+
+==== C:\dev\AMS_HoldCrypto\frontend\src\features\wallet\services\walletService.ts ====
+// Caminho: src/features/wallet/services/walletService.ts
+import apiClient from '@/shared/api/apiClient';
+import { walletAPI } from '@/shared/api/api';
+
+// --- Interfaces ---
+
+export type WalletCategory = "Overview" | "Spot" | "Funding";
+
+export interface Wallet {
+  id: number;
+  userId: number;
+  name: string;
+  category: WalletCategory;
+  currencySymbol: string;
+  balance: number;
+  createdAt: string;
+}
+
+// Interface que corresponde ao WalletTransactionDTO do C#
+export interface WalletTransaction {
+  id: number;
+  createdAt: string;
+  type: number; // 0: Deposit, 1: Withdraw, 2: Transfer
+  amount: number;
+  walletId: number;
+  currencySymbol: string;
+  notes: string;
+}
+
+export interface CreateWalletDTO {
+  userId: number;
+  name: string;
+  category: WalletCategory;
+  currencySymbol: string;
+  balance: number;
+}
+
+export interface DepositWithdrawDTO {
+  amount: number;
+}
+
+export interface TransferDTO {
+  fromWalletId: number;
+  toWalletId: number;
+  amount: number;
+}
+
+export interface TradeRequestDTO {
+  userId: number;
+  fromWalletId: number;
+  toCurrencySymbol: string;
+  amountToSpend: number;
+}
+
+export interface TradeResponseDTO {
+  status: string;
+  newBalances: Record<string, number>;
+}
+
+// --- Serviço ---
+const walletService = {
+  getUserWallets: async (userId: number): Promise<Wallet[]> => {
+    if (!userId || userId <= 0) throw new Error("ID de usuário inválido.");
+    const response = await apiClient.get<Wallet[]>(walletAPI.getUserWallets(userId));
+    return response.data;
+  },
+
+  createWallet: async (walletData: CreateWalletDTO): Promise<Wallet> => {
+    const response = await apiClient.post<Wallet>(walletAPI.createWallet(), walletData);
+    return response.data;
+  },
+
+  deposit: async (walletId: number, data: DepositWithdrawDTO): Promise<{ balance: number }> => {
+    const response = await apiClient.post<{ balance: number }>(walletAPI.deposit(walletId), data);
+    return response.data;
+  },
+
+  withdraw: async (walletId: number, data: DepositWithdrawDTO): Promise<{ balance: number }> => {
+    const response = await apiClient.post<{ balance: number }>(walletAPI.withdraw(walletId), data);
+    return response.data;
+  },
+
+  transfer: async (data: TransferDTO): Promise<{ fromBalance: number, toBalance: number }> => {
+    const response = await apiClient.post<{ fromBalance: number, toBalance: number }>(walletAPI.transfer(), data);
+    return response.data;
+  },
+
+  trade: async (data: TradeRequestDTO): Promise<TradeResponseDTO> => {
+    const response = await apiClient.post<TradeResponseDTO>(walletAPI.trade(), data);
+    return response.data;
+  },
+
+  // *** NOVA FUNÇÃO PARA HISTÓRICO (RF-09) ***
+  getHistory: async (userId: number): Promise<WalletTransaction[]> => {
+    // Rota: GET /wallet/history?userId=1
+    // Nota: Certifique-se que esta rota está no ocelot.json apontando para /api/Wallet/history
+    const response = await apiClient.get<WalletTransaction[]>(`/wallet/history?userId=${userId}`);
+    return response.data;
+  },
+};
+
+export default walletService;
+
+---- end of file ----
+

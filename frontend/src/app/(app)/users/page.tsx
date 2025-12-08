@@ -1,2 +1,5 @@
-import ListUsersPage from "@/features/user/pages/ListUsersPage";
-export default ListUsersPage;
+import { UsersListPage } from '@/features/user/pages/UsersListPage';
+
+export default function Page() {
+  return <UsersListPage />;
+}

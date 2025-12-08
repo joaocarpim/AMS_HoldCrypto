@@ -1,0 +1,1120 @@
+==== C:\dev\AMS_HoldCrypto\frontend\src\features\user\components\AddUserModal.tsx ====
+"use client";
+
+import React, { useState } from 'react';
+import Modal from '@/shared/components/Modal';
+import UserForm from './UserForm';
+import { UserFormValues } from '../types/UserFormValues';
+import { useUsersStore } from '../store/usersStore';
+
+interface AddUserModalProps {
+  open: boolean;
+  onClose: () => void;
+}
+
+const AddUserModal: React.FC<AddUserModalProps> = ({ open, onClose }) => {
+  const { addUser } = useUsersStore();
+  const [isLoading, setIsLoading] = useState(false); // Este estado já existia
+
+  const handleSubmit = async (values: UserFormValues) => {
+    setIsLoading(true);
+    const success = await addUser(values);
+    setIsLoading(false);
+
+    if (success) {
+      alert("Usuário adicionado com sucesso!");
+      onClose();
+    } else {
+      alert("Falha ao adicionar usuário. Tente novamente.");
+    }
+  };
+
+  return (
+    <Modal open={open} onClose={onClose} title="Adicionar Novo Usuário">
+      <UserForm
+        onSubmit={handleSubmit}
+        buttonLabel="Criar Usuário"
+        isLoading={isLoading} // <-- PASSE A PROP AQUI
+      />
+    </Modal>
+  );
+};
+
+export default AddUserModal;
+
+---- end of file ----
+
+==== C:\dev\AMS_HoldCrypto\frontend\src\features\user\components\DeleteConfirmationModal.tsx ====
+"use client";
+
+import React, { useState } from 'react';
+import Modal from '@/shared/components/Modal';
+import { useUsersStore } from '../store/usersStore';
+import { User } from '../services/userService';
+import { Box, Typography, Button, CircularProgress } from '@mui/material';
+import { AlertCircle } from 'lucide-react'; // Ícone de alerta, como na referência
+
+interface DeleteConfirmationModalProps {
+  open: boolean;
+  onClose: () => void;
+  user: User | null;
+}
+
+const DeleteConfirmationModal: React.FC<DeleteConfirmationModalProps> = ({ open, onClose, user }) => {
+  const { deleteUser } = useUsersStore();
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleConfirmDelete = async () => {
+    if (!user) return;
+
+    setIsLoading(true);
+    const success = await deleteUser(user.id);
+    setIsLoading(false);
+
+    if (success) {
+      alert("Usuário deletado com sucesso!"); // Usando alert por enquanto
+      onClose();
+    } else {
+      alert("Falha ao deletar usuário.");
+    }
+  };
+
+  if (!user) return null; // Não renderiza nada se não houver um usuário selecionado
+
+  return (
+    <Modal open={open} onClose={onClose} title="Confirmar Exclusão">
+      <Box sx={{ textAlign: 'center' }}>
+        <AlertCircle size={48} color="#ef4444" style={{ margin: '0 auto 16px' }} />
+        <Typography variant="h6" component="h3" fontWeight="bold">
+          Você tem certeza?
+        </Typography>
+        <Typography sx={{ mt: 1, color: 'text.secondary' }}>
+          Você está prestes a deletar o usuário{' '}
+          <Box component="span" fontWeight="bold">{user.name}</Box>.
+          Esta ação não pode ser desfeita.
+        </Typography>
+        <Box sx={{ mt: 4, display: 'flex', justifyContent: 'center', gap: 2 }}>
+          <Button
+            variant="outlined"
+            onClick={onClose}
+            disabled={isLoading}
+          >
+            Cancelar
+          </Button>
+          <Button
+            variant="contained"
+            color="error" // Cor para indicar uma ação destrutiva
+            onClick={handleConfirmDelete}
+            disabled={isLoading}
+            sx={{ minWidth: 110 }}
+          >
+            {isLoading ? (
+              <CircularProgress size={24} color="inherit" />
+            ) : (
+              'Deletar'
+            )}
+          </Button>
+        </Box>
+      </Box>
+    </Modal>
+  );
+};
+
+export default DeleteConfirmationModal;
+
+---- end of file ----
+
+==== C:\dev\AMS_HoldCrypto\frontend\src\features\user\components\EditUserModal.tsx ====
+"use client";
+
+import React, { useState, useEffect } from 'react';
+import Modal from '@/shared/components/Modal';
+import UserForm from './UserForm';
+import { UserFormValues } from '../types/UserFormValues';
+import { useUsersStore } from '../store/usersStore';
+import { User } from '../services/userService';
+
+interface EditUserModalProps {
+  open: boolean;
+  onClose: () => void;
+  user: User | null; // Recebe o usuário a ser editado
+}
+
+const EditUserModal: React.FC<EditUserModalProps> = ({ open, onClose, user }) => {
+  const { updateUser } = useUsersStore();
+  const [isLoading, setIsLoading] = useState(false);
+
+  // Prepara os valores iniciais para o formulário.
+  // A senha fica em branco; o usuário só digita se quiser alterar.
+  const initialValues = user ? {
+    name: user.name,
+    email: user.email,
+    phone: user.phone,
+    address: user.address,
+    password: '', // Deixar em branco por segurança
+    photo: user.photo,
+  } : undefined;
+
+  const handleSubmit = async (values: UserFormValues) => {
+    if (!user) return; // Verificação de segurança
+
+    setIsLoading(true);
+
+    // Lógica para não enviar a senha se o campo estiver vazio
+    const dataToUpdate: Partial<UserFormValues> = { ...values };
+    if (!dataToUpdate.password?.trim()) {
+      delete dataToUpdate.password;
+    }
+
+    const success = await updateUser(user.id, dataToUpdate);
+    setIsLoading(false);
+
+    if (success) {
+      alert("Usuário atualizado com sucesso!");
+      onClose();
+    } else {
+      alert("Falha ao atualizar usuário. Tente novamente.");
+    }
+  };
+
+  return (
+    <Modal open={open} onClose={onClose} title={`Editar Usuário: ${user?.name}`}>
+      {/* O formulário só é renderizado se tivermos os valores iniciais,
+        evitando qualquer erro caso o modal seja aberto sem um usuário.
+      */}
+      {initialValues && (
+        <UserForm
+          initialValues={initialValues}
+          onSubmit={handleSubmit}
+          buttonLabel="Salvar Alterações"
+          isLoading={isLoading}
+        />
+      )}
+    </Modal>
+  );
+};
+
+export default EditUserModal;
+
+---- end of file ----
+
+==== C:\dev\AMS_HoldCrypto\frontend\src\features\user\components\UserForm.tsx ====
+"use client";
+
+import React, { useState } from "react";
+import { UserFormValues } from "@/features/user/types/UserFormValues";
+import TextField from "@mui/material/TextField";
+import Box from "@mui/material/Box";
+import MainButton from "@/shared/components/MainButton";
+import { yellowField } from "@/shared/theme/fieldStyles";
+import { CircularProgress } from "@mui/material"; // <-- 1. Importar o CircularProgress
+
+interface UserFormProps {
+  initialValues?: UserFormValues;
+  onSubmit: (values: UserFormValues) => void;
+  buttonLabel?: string;
+  isLoading?: boolean; // <-- 2. Adicionar a nova prop
+}
+
+const fields = [
+  { label: "Nome", id: "name", type: "text", placeholder: "Seu nome" },
+  { label: "Email", id: "email", type: "email", placeholder: "Seu email" },
+  { label: "Telefone", id: "phone", type: "text", placeholder: "Seu telefone" },
+  { label: "Endereço", id: "address", type: "text", placeholder: "Seu endereço" },
+  { label: "Senha", id: "password", type: "password", placeholder: "Sua senha" },
+  { label: "Foto (URL)", id: "photo", type: "text", placeholder: "URL da sua foto" },
+];
+
+const UserForm: React.FC<UserFormProps> = ({
+  initialValues,
+  onSubmit,
+  buttonLabel,
+  isLoading, // <-- 3. Receber a prop
+}) => {
+  const [values, setValues] = useState<UserFormValues>(
+    initialValues || {
+      name: "",
+      email: "",
+      phone: "",
+      address: "",
+      password: "",
+      photo: "",
+    }
+  );
+
+  // ... (restante do código do formulário permanece igual: errors, handleChange, etc.)
+  const [errors, setErrors] = useState<{ [key: string]: string }>({});
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setValues({ ...values, [name]: value });
+    setErrors({ ...errors, [name]: "" });
+  };
+
+  const validateForm = (): boolean => {
+    const newErrors: { [key: string]: string } = {};
+
+    if (!values.name) newErrors.name = "O nome é obrigatório.";
+    if (!values.email) {
+      newErrors.email = "O email é obrigatório.";
+    } else if (!/\S+@\S+\.\S+/.test(values.email)) {
+      newErrors.email = "Formato de email inválido.";
+    }
+    if (!values.phone) newErrors.phone = "O telefone é obrigatório.";
+    if (!values.password) newErrors.password = "A senha é obrigatória.";
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (validateForm()) {
+      onSubmit(values);
+    }
+  };
+
+
+  return (
+    <Box component="form" onSubmit={handleSubmit} sx={{ display: "flex", flexDirection: "column", gap: 3 }}>
+      {fields.map(({ label, id, type, placeholder }) => (
+        <TextField
+          key={id}
+          label={label}
+          name={id}
+          type={type}
+          value={values[id as keyof UserFormValues] as string}
+          onChange={handleChange}
+          placeholder={placeholder}
+          error={!!errors[id]}
+          helperText={errors[id]}
+          sx={yellowField}
+          fullWidth
+        />
+      ))}
+      {/* 4. Lógica do botão atualizada */}
+      <MainButton type="submit" disabled={isLoading}>
+        {isLoading ? (
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+            <CircularProgress size={20} color="inherit" />
+            Criando...
+          </Box>
+        ) : (
+          buttonLabel || "Registrar"
+        )}
+      </MainButton>
+    </Box>
+  );
+};
+
+export default UserForm;
+
+---- end of file ----
+
+==== C:\dev\AMS_HoldCrypto\frontend\src\features\user\pages\MyProfilePage.tsx ====
+'use client';
+
+import React, { useState, useEffect, ChangeEvent } from 'react';
+import { useAuthUser, useAuthActions } from '@/features/auth/store/useAuthStore';
+import { userService } from '@/features/user/services/userService';
+import { 
+  User, Mail, Phone, MapPin, Camera, Save, Lock, Loader2, 
+  ShieldCheck, Calendar, CheckCircle2, AlertTriangle 
+} from 'lucide-react';
+import { useNotification } from '@/shared/context/NotificationContext';
+import Image from 'next/image';
+
+// --- Componente de Input Visual (Glass) ---
+const ProfileInput = ({ label, icon: Icon, ...props }: any) => (
+  <div className="space-y-1.5">
+    <label className="text-xs font-bold text-gray-500 uppercase tracking-wider ml-1">{label}</label>
+    <div className="relative group">
+      <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-yellow-500 transition-colors">
+        <Icon size={18} />
+      </div>
+      <input 
+        className="w-full bg-[#0b0f19] border border-white/10 rounded-xl py-3.5 pl-12 pr-4 text-white placeholder-gray-600 focus:outline-none focus:border-yellow-500/50 focus:ring-1 focus:ring-yellow-500/50 transition-all font-medium"
+        {...props}
+      />
+    </div>
+  </div>
+);
+
+export function MyProfilePage() {
+  const user = useAuthUser();
+  const { fetchProfile } = useAuthActions();
+  const { showNotification } = useNotification();
+
+  const [activeTab, setActiveTab] = useState<'general' | 'security'>('general');
+  const [isLoading, setIsLoading] = useState(false);
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    address: '',
+    photo: '',
+    password: '',
+    confirmPassword: ''
+  });
+
+  // Carregar dados ao entrar
+  useEffect(() => {
+    if (user.id) {
+      const loadUserData = async () => {
+        try {
+          const data = await userService.getById(user.id!);
+          setFormData({
+            name: data.name || '',
+            email: data.email || '',
+            phone: data.phone || '',
+            address: data.address || '',
+            photo: data.photo || '',
+            password: '',
+            confirmPassword: ''
+          });
+        } catch (error) {
+          console.error("Erro ao carregar perfil:", error);
+        }
+      };
+      loadUserData();
+    }
+  }, [user.id]);
+
+  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handlePhotoChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setFormData(prev => ({ ...prev, photo: reader.result as string }));
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!user.id) return;
+
+    if (activeTab === 'security' && formData.password !== formData.confirmPassword) {
+        showNotification("As senhas não coincidem.", "error");
+        return;
+    }
+
+    setIsLoading(true);
+    try {
+        const updatePayload: any = { ...formData };
+        if (!updatePayload.password) delete updatePayload.password;
+        delete updatePayload.confirmPassword;
+
+        await userService.update(user.id, updatePayload);
+        await fetchProfile(); 
+        
+        showNotification("Perfil atualizado com sucesso!", "success");
+        setFormData(prev => ({ ...prev, password: '', confirmPassword: '' }));
+    } catch (error) {
+        showNotification("Erro ao atualizar perfil.", "error");
+    } finally {
+        setIsLoading(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-[#020617] text-white pb-20">
+      
+      {/* --- CAPA --- */}
+      <div className="relative h-64 w-full bg-gradient-to-r from-yellow-600/20 via-purple-900/40 to-blue-900/20 overflow-hidden">
+        <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-20"></div>
+        <div className="absolute bottom-0 left-0 w-full h-24 bg-gradient-to-t from-[#020617] to-transparent"></div>
+      </div>
+
+      <div className="max-w-6xl mx-auto px-6 -mt-24 relative z-10">
+        
+        {/* --- HEADER --- */}
+        <div className="flex flex-col md:flex-row items-end md:items-center justify-between gap-6 mb-8">
+            <div className="flex items-end gap-6">
+                <div className="relative group">
+                    <div className="w-36 h-36 rounded-3xl p-1.5 bg-[#020617] shadow-2xl">
+                        <div className="w-full h-full rounded-2xl overflow-hidden bg-white/5 relative">
+                            {formData.photo ? (
+                                <Image src={formData.photo} alt="Profile" fill className="object-cover" unoptimized />
+                            ) : (
+                                <div className="w-full h-full flex items-center justify-center text-5xl font-bold text-yellow-500 bg-yellow-500/10">
+                                    {formData.name.charAt(0).toUpperCase()}
+                                </div>
+                            )}
+                            <label className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center cursor-pointer text-white text-xs font-bold gap-2 backdrop-blur-sm">
+                                <Camera size={24} className="text-yellow-500" />
+                                ALTERAR FOTO
+                                <input type="file" className="hidden" accept="image/*" onChange={handlePhotoChange} />
+                            </label>
+                        </div>
+                    </div>
+                    <div className="absolute -bottom-2 -right-2 bg-emerald-500 text-black p-1.5 rounded-full border-4 border-[#020617]" title="Conta Verificada">
+                        <CheckCircle2 size={16} strokeWidth={3} />
+                    </div>
+                </div>
+
+                <div className="mb-2">
+                    <h1 className="text-3xl font-bold text-white mb-1">{formData.name}</h1>
+                    <div className="flex flex-wrap items-center gap-4 text-sm text-gray-400">
+                        <span className="flex items-center gap-1.5 bg-white/5 px-2 py-1 rounded-lg">
+                            <Mail size={14} className="text-yellow-500" /> {formData.email}
+                        </span>
+                        <span className="flex items-center gap-1.5">
+                            <ShieldCheck size={14} className="text-emerald-500" /> KYC Verificado
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <div className="flex gap-4 mb-2">
+                <div className="glass-panel px-5 py-3 rounded-2xl text-center border border-white/5 bg-[#0f172a]/60">
+                    <p className="text-xs text-gray-500 uppercase font-bold">Membro Desde</p>
+                    <p className="text-white font-mono flex items-center justify-center gap-1">
+                        <Calendar size={14} className="text-yellow-500" /> 2025
+                    </p>
+                </div>
+                <div className="glass-panel px-5 py-3 rounded-2xl text-center border border-white/5 bg-[#0f172a]/60">
+                    <p className="text-xs text-gray-500 uppercase font-bold">Nível</p>
+                    <p className="text-yellow-500 font-bold flex items-center justify-center gap-1">
+                        VIP <span className="text-white">Trader</span>
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        {/* --- GRID --- */}
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+            
+            {/* Sidebar */}
+            <div className="lg:col-span-1 space-y-2">
+                <button 
+                    onClick={() => setActiveTab('general')}
+                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-medium ${activeTab === 'general' ? 'bg-yellow-500 text-black shadow-lg shadow-yellow-500/20 font-bold' : 'text-gray-400 hover:bg-white/5 hover:text-white'}`}
+                >
+                    <User size={20} /> Dados Pessoais
+                </button>
+                <button 
+                    onClick={() => setActiveTab('security')}
+                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all font-medium ${activeTab === 'security' ? 'bg-yellow-500 text-black shadow-lg shadow-yellow-500/20 font-bold' : 'text-gray-400 hover:bg-white/5 hover:text-white'}`}
+                >
+                    <Lock size={20} /> Segurança
+                </button>
+                
+                <div className="mt-8 p-4 rounded-2xl bg-blue-500/10 border border-blue-500/20">
+                    <h4 className="text-blue-400 text-sm font-bold flex items-center gap-2 mb-2">
+                        <ShieldCheck size={16} /> Segurança
+                    </h4>
+                    <p className="text-xs text-gray-400 leading-relaxed">
+                        A equipe HoldCrypto nunca pedirá sua senha por email ou chat. Mantenha seus dados seguros.
+                    </p>
+                </div>
+            </div>
+
+            {/* Form */}
+            <div className="lg:col-span-3">
+                <div className="glass-panel p-8 rounded-3xl border border-white/5 bg-[#0f172a]/40 backdrop-blur-xl">
+                    <div className="flex justify-between items-center mb-8 border-b border-white/5 pb-6">
+                        <div>
+                            <h2 className="text-xl font-bold text-white">
+                                {activeTab === 'general' ? 'Informações da Conta' : 'Segurança e Acesso'}
+                            </h2>
+                            <p className="text-sm text-gray-400 mt-1">
+                                {activeTab === 'general' ? 'Atualize seus dados de contato.' : 'Gerencie sua senha e proteja sua conta.'}
+                            </p>
+                        </div>
+                        <button
+                            onClick={handleSubmit}
+                            disabled={isLoading}
+                            className="hidden md:flex items-center gap-2 px-6 py-2.5 bg-white/5 hover:bg-white/10 border border-white/10 text-white font-bold rounded-xl transition-all active:scale-95 disabled:opacity-50"
+                        >
+                            {isLoading ? <Loader2 className="animate-spin" size={18} /> : <Save size={18} />}
+                            Salvar
+                        </button>
+                    </div>
+
+                    <form onSubmit={handleSubmit} className="space-y-6">
+                        {activeTab === 'general' && (
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-fade-in">
+                                <ProfileInput label="Nome Completo" icon={User} name="name" value={formData.name} onChange={handleChange} />
+                                <ProfileInput label="Email Principal" icon={Mail} name="email" value={formData.email} onChange={handleChange} />
+                                <ProfileInput label="Telefone" icon={Phone} name="phone" value={formData.phone} onChange={handleChange} />
+                                <ProfileInput label="Endereço" icon={MapPin} name="address" value={formData.address} onChange={handleChange} />
+                            </div>
+                        )}
+
+                        {activeTab === 'security' && (
+                            <div className="space-y-6 max-w-lg animate-fade-in">
+                                <div className="p-4 rounded-xl bg-yellow-500/5 border border-yellow-500/20 flex gap-3">
+                                    <AlertTriangle className="text-yellow-500 shrink-0" size={24} />
+                                    <div>
+                                        <h4 className="text-yellow-500 font-bold text-sm">Alterar Senha</h4>
+                                        <p className="text-gray-400 text-xs mt-1">Deixe os campos em branco se não quiser alterar sua senha atual.</p>
+                                    </div>
+                                </div>
+                                <ProfileInput label="Nova Senha" icon={Lock} type="password" name="password" placeholder="••••••••" value={formData.password} onChange={handleChange} />
+                                <ProfileInput label="Confirmar Nova Senha" icon={Lock} type="password" name="confirmPassword" placeholder="••••••••" value={formData.confirmPassword} onChange={handleChange} />
+                            </div>
+                        )}
+
+                        <div className="pt-8 border-t border-white/5 flex justify-end">
+                            <button
+                                type="submit"
+                                disabled={isLoading}
+                                className="flex items-center gap-2 px-8 py-3 bg-yellow-500 hover:bg-yellow-400 text-black font-bold rounded-xl transition-all shadow-[0_0_20px_rgba(240,185,11,0.2)] hover:shadow-[0_0_30px_rgba(240,185,11,0.4)] active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed"
+                            >
+                                {isLoading ? <Loader2 className="animate-spin" size={20} /> : <Save size={20} />}
+                                Salvar Alterações
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+---- end of file ----
+
+==== C:\dev\AMS_HoldCrypto\frontend\src\features\user\pages\UserPage.tsx ====
+"use client";
+
+import React, { useEffect, useState } from "react";
+import { useUsersStore } from "@/features/user/store/usersStore";
+import { User } from "@/features/user/services/userService";
+
+// MUI Components
+import {
+  Box, Typography, Paper, Table, TableBody, TableCell,
+  TableContainer, TableHead, TableRow, CircularProgress,
+  IconButton, Avatar, Tooltip, TextField, InputAdornment
+} from "@mui/material";
+
+// Lucide Icons
+import { Users as UsersIcon, UserPlus, Edit, Trash2, Search } from 'lucide-react';
+
+// Nossos componentes de Modal
+import AddUserModal from '@/features/user/components/AddUserModal';
+import EditUserModal from '@/features/user/components/EditUserModal';
+import DeleteConfirmationModal from '@/features/user/components/DeleteConfirmationModal'; // <-- 1. IMPORTAÇÃO
+
+export default function UsersPage() {
+  const { users, loading, error, fetchUsers } = useUsersStore();
+  const [searchTerm, setSearchTerm] = useState('');
+  const [addModalOpen, setAddModalOpen] = useState(false);
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+
+  useEffect(() => {
+    fetchUsers();
+  }, [fetchUsers]);
+
+  const handleOpenEditModal = (user: User) => {
+    setSelectedUser(user);
+    setEditModalOpen(true);
+  };
+  
+  const handleOpenDeleteModal = (user: User) => {
+    setSelectedUser(user);
+    setDeleteModalOpen(true);
+  };
+
+  const filteredUsers = users.filter(user =>
+    user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    user.email.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  return (
+    <Box sx={{ p: { xs: 2, md: 4 }, maxWidth: 1200, mx: "auto" }}>
+      {/* ... (Cabeçalho da página e Paper da tabela) ... */}
+      <Box display="flex" justifyContent="space-between" alignItems="center" mb={4}>
+        <Typography variant="h4" fontWeight="bold" color="text.primary" sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+          <UsersIcon size={32} color="#fcd34d" />
+          Gerenciamento de Usuários
+        </Typography>
+        <button
+          onClick={() => setAddModalOpen(true)}
+          className="flex items-center space-x-2 px-4 py-2 bg-yellow-400 hover:bg-yellow-500 text-black rounded-md transition-colors duration-200 shadow-sm font-bold"
+        >
+          <UserPlus size={20} />
+          <span>Adicionar Usuário</span>
+        </button>
+      </Box>
+
+      <Paper sx={{ p: 3, bgcolor: '#1E1E1E', borderRadius: 4 }}>
+        <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+            <Typography variant="h6">
+                Todos os Usuários ({filteredUsers.length})
+            </Typography>
+            <TextField
+                variant="outlined"
+                size="small"
+                placeholder="Pesquisar..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                InputProps={{
+                    startAdornment: (
+                        <InputAdornment position="start">
+                            <Search size={18} />
+                        </InputAdornment>
+                    ),
+                }}
+            />
+        </Box>
+        
+        {loading ? (
+            <Box display="flex" justifyContent="center" py={10}>
+                <CircularProgress color="primary" />
+            </Box>
+        ) : error ? (
+            <Typography color="error" textAlign="center" py={10}> {error} </Typography>
+        ) : (
+          <TableContainer>
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell sx={{ fontWeight: "bold", color: "#fcd34d" }}>Usuário</TableCell>
+                  <TableCell sx={{ fontWeight: "bold", color: "#fcd34d" }}>Contato</TableCell>
+                  <TableCell sx={{ fontWeight: "bold", color: "#fcd34d", textAlign: 'center' }}>Ações</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {filteredUsers.map((user) => (
+                  <TableRow key={user.id} hover sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
+                    <TableCell>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                        <Avatar src={user.photo} alt={user.name}>
+                          {user.name.charAt(0)}
+                        </Avatar>
+                        <Box>
+                            <Typography fontWeight="bold" color="text.primary">{user.name}</Typography>
+                            <Typography variant="body2" color="text.secondary">{user.email}</Typography>
+                        </Box>
+                      </Box>
+                    </TableCell>
+                    <TableCell>
+                        <Typography variant="body2" color="text.primary">{user.phone}</Typography>
+                        <Typography variant="body2" color="text.secondary">{user.address}</Typography>
+                    </TableCell>
+                    <TableCell align="center">
+                      <Tooltip title="Editar">
+                        <IconButton onClick={() => handleOpenEditModal(user)}>
+                          <Edit size={20} color="#fcd34d" />
+                        </IconButton>
+                      </Tooltip>
+                      <Tooltip title="Deletar">
+                        <IconButton onClick={() => handleOpenDeleteModal(user)}>
+                          <Trash2 size={20} color="#ef4444" />
+                        </IconButton>
+                      </Tooltip>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        )}
+      </Paper>
+      
+      {/* Nossos modais renderizados */}
+      <AddUserModal open={addModalOpen} onClose={() => setAddModalOpen(false)} />
+      <EditUserModal open={editModalOpen} onClose={() => setEditModalOpen(false)} user={selectedUser} />
+      
+      {/* 2. ATIVAÇÃO DO MODAL DE DELEÇÃO */}
+      <DeleteConfirmationModal open={deleteModalOpen} onClose={() => setDeleteModalOpen(false)} user={selectedUser} />
+    </Box>
+  );
+}
+
+---- end of file ----
+
+==== C:\dev\AMS_HoldCrypto\frontend\src\features\user\pages\UsersListPage.tsx ====
+'use client';
+
+import React, { useState, useEffect } from 'react';
+import { userService, User } from '@/features/user/services/userService';
+import { 
+  Search, Trash2, Edit2, Shield, Mail, 
+  Loader2, UserX, CheckCircle2, AlertCircle 
+} from 'lucide-react';
+import { useNotification } from '@/shared/context/NotificationContext';
+import Image from 'next/image';
+
+export function UsersListPage() {
+  const [users, setUsers] = useState<User[]>([]);
+  const [filteredUsers, setFilteredUsers] = useState<User[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
+  const { showNotification } = useNotification();
+
+  // Carregar usuários ao abrir a página
+  useEffect(() => {
+    loadUsers();
+  }, []);
+
+  // Filtro de busca em tempo real
+  useEffect(() => {
+    const term = searchTerm.toLowerCase();
+    const results = users.filter(user => 
+      (user.name?.toLowerCase() || '').includes(term) ||
+      (user.email?.toLowerCase() || '').includes(term) ||
+      (user.role?.toLowerCase() || '').includes(term)
+    );
+    setFilteredUsers(results);
+  }, [searchTerm, users]);
+
+  const loadUsers = async () => {
+    try {
+      setIsLoading(true);
+      const data = await userService.getAll();
+      setUsers(data);
+      setFilteredUsers(data);
+    } catch (error) {
+      console.error("Erro ao carregar usuários", error);
+      showNotification("Erro ao carregar lista de usuários", "error");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleDelete = async (id: number) => {
+    if (!confirm("Tem certeza que deseja excluir este usuário? Essa ação é irreversível.")) return;
+
+    try {
+      await userService.delete(id);
+      showNotification("Usuário removido com sucesso", "success");
+      setUsers(prev => prev.filter(u => u.id !== id));
+    } catch (error) {
+      showNotification("Erro ao excluir usuário", "error");
+    }
+  };
+
+  // Componente interno para o Badge de Cargo
+  const RoleBadge = ({ role }: { role: string }) => {
+    // Tratamento para garantir que espaços invisíveis não quebrem a lógica
+    const cleanRole = (role || '').trim().toLowerCase();
+    const isAdmin = cleanRole === 'admin';
+
+    return (
+      <span className={`
+        inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] md:text-xs font-bold border tracking-wide uppercase
+        ${isAdmin 
+          ? 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20 shadow-[0_0_10px_rgba(240,185,11,0.2)]' 
+          : 'bg-blue-500/10 text-blue-400 border-blue-500/20'}
+      `}>
+        {isAdmin ? <Shield size={12} fill="currentColor" /> : <CheckCircle2 size={12} />}
+        {isAdmin ? 'Administrador' : 'Usuário'}
+      </span>
+    );
+  };
+
+  return (
+    <div className="min-h-screen bg-[#020617] text-white p-4 md:p-8 pb-20">
+      
+      {/* --- HEADER --- */}
+      <div className="max-w-7xl mx-auto mb-8 flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
+        <div className="animate-fade-in-up">
+          <h1 className="text-3xl font-bold text-white mb-2 tracking-tight flex items-center gap-3">
+            Gestão de Membros
+            <span className="text-xs font-normal text-gray-500 bg-white/5 px-2 py-1 rounded-md border border-white/5">
+              Admin
+            </span>
+          </h1>
+          <p className="text-gray-400 text-sm">Visualize e gerencie todos os usuários cadastrados na plataforma.</p>
+        </div>
+        
+        {/* Barra de Busca */}
+        <div className="relative w-full md:w-96 group">
+          <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-yellow-500 transition-colors">
+            <Search size={20} />
+          </div>
+          <input 
+            type="text"
+            placeholder="Buscar por nome, email ou cargo..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full bg-[#0f172a]/80 border border-white/10 rounded-2xl py-3.5 pl-12 pr-4 text-white placeholder-gray-600 focus:outline-none focus:border-yellow-500/50 focus:ring-1 focus:ring-yellow-500/50 transition-all shadow-lg"
+          />
+        </div>
+      </div>
+
+      {/* --- TABELA GLASS --- */}
+      <div className="max-w-7xl mx-auto">
+        <div className="bg-[#0f172a]/40 backdrop-blur-xl border border-white/5 rounded-3xl overflow-hidden shadow-2xl relative min-h-[400px]">
+          
+          {/* Loading State */}
+          {isLoading && (
+            <div className="absolute inset-0 bg-[#0f172a]/80 z-50 flex flex-col items-center justify-center backdrop-blur-sm">
+              <Loader2 size={40} className="animate-spin text-yellow-500 mb-4" />
+              <p className="text-gray-400 animate-pulse">Sincronizando dados...</p>
+            </div>
+          )}
+
+          {/* Empty State */}
+          {!isLoading && filteredUsers.length === 0 && (
+            <div className="absolute inset-0 flex flex-col items-center justify-center text-gray-500">
+              <div className="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center mb-4">
+                <UserX size={32} />
+              </div>
+              <p className="text-lg font-medium text-white">Nenhum usuário encontrado</p>
+              <p className="text-sm">Tente buscar por outro termo.</p>
+            </div>
+          )}
+
+          {/* Tabela de Dados */}
+          {!isLoading && filteredUsers.length > 0 && (
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="bg-white/5 border-b border-white/5 text-gray-400 text-[11px] uppercase tracking-widest font-bold">
+                    <th className="p-6 pl-8">Usuário</th>
+                    <th className="p-6">Contato</th>
+                    <th className="p-6">Permissão</th>
+                    <th className="p-6 text-center">Status</th>
+                    <th className="p-6 pr-8 text-right">Ações</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-white/5">
+                  {filteredUsers.map((user) => (
+                    <tr key={user.id} className="hover:bg-white/[0.02] transition-colors group">
+                      
+                      {/* Usuário */}
+                      <td className="p-6 pl-8">
+                        <div className="flex items-center gap-4">
+                          <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl bg-gradient-to-br from-[#1e293b] to-[#0f172a] border border-white/10 overflow-hidden relative flex items-center justify-center shrink-0 shadow-inner group-hover:border-yellow-500/30 transition-colors">
+                            {user.photo ? (
+                              <Image src={user.photo} alt={user.name} fill className="object-cover" unoptimized />
+                            ) : (
+                              <span className="text-base md:text-lg font-bold text-yellow-500">{user.name?.charAt(0).toUpperCase() || '?'}</span>
+                            )}
+                          </div>
+                          <div>
+                            <p className="font-bold text-white group-hover:text-yellow-500 transition-colors text-sm md:text-base">
+                              {user.name || "Sem Nome"}
+                            </p>
+                            <div className="flex items-center gap-1.5 text-[10px] text-gray-500 mt-1 font-mono uppercase">
+                              ID: #{user.id.toString().padStart(4, '0')}
+                            </div>
+                          </div>
+                        </div>
+                      </td>
+
+                      {/* Contato */}
+                      <td className="p-6">
+                        <div className="flex items-center gap-2 text-sm text-gray-300">
+                          <Mail size={14} className="text-gray-500" /> 
+                          <span className="truncate max-w-[150px] md:max-w-[200px]">{user.email}</span>
+                        </div>
+                      </td>
+
+                      {/* Permissão */}
+                      <td className="p-6">
+                        <RoleBadge role={user.role || 'user'} />
+                      </td>
+
+                      {/* Status (Fake) */}
+                      <td className="p-6 text-center">
+                        <div className="inline-flex items-center gap-2 px-2 py-1 bg-emerald-500/5 rounded-lg border border-emerald-500/10">
+                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.8)] animate-pulse"></span>
+                            <span className="text-[10px] font-bold text-emerald-500 uppercase">Ativo</span>
+                        </div>
+                      </td>
+
+                      {/* Ações */}
+                      <td className="p-6 pr-8 text-right">
+                        <div className="flex items-center justify-end gap-2 opacity-100 md:opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-x-0 md:translate-x-2 group-hover:translate-x-0">
+                          <button 
+                            className="p-2.5 rounded-lg text-gray-400 hover:text-white hover:bg-white/10 transition-all"
+                            title="Editar (Simulação)"
+                          >
+                            <Edit2 size={16} />
+                          </button>
+                          
+                          <button 
+                            onClick={() => handleDelete(user.id)}
+                            className="p-2.5 rounded-lg text-red-500/70 hover:text-red-500 hover:bg-red-500/10 transition-all"
+                            title="Excluir Usuário"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </div>
+                      </td>
+
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+          
+          {/* Footer da Tabela */}
+          <div className="px-8 py-4 bg-black/20 border-t border-white/5 flex items-center justify-between text-xs text-gray-500">
+            <span>Mostrando <strong>{filteredUsers.length}</strong> registro(s)</span>
+          </div>
+        </div>
+        
+        {/* Aviso de Segurança */}
+        <div className="mt-6 flex items-center justify-center gap-2 text-xs text-gray-600 opacity-60 hover:opacity-100 transition-opacity cursor-help">
+           <AlertCircle size={12} />
+           <span>Painel de acesso restrito. Todas as ações de exclusão são auditadas.</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+---- end of file ----
+
+==== C:\dev\AMS_HoldCrypto\frontend\src\features\user\services\userService.ts ====
+import apiClient from '@/shared/api/apiClient';
+import { userAPI } from '@/shared/api/api';
+
+export interface User {
+  id: number;
+  name: string;
+  email: string;
+  
+  // --- NOVO CAMPO ADICIONADO ---
+  // Essencial para esconder/mostrar o menu de admin
+  role: string; 
+  // -----------------------------
+
+  password?: string;
+  
+  // Dica: Como deixamos opcional no backend, é bom por '?' aqui também
+  // para evitar erros se vier nulo do banco
+  photo?: string; 
+  phone?: string;
+  address?: string;
+}
+
+const userServiceObject = {
+  getAll: async (): Promise<User[]> => {
+    const response = await apiClient.get(userAPI.getAll());
+    return response.data;
+  },
+
+  getById: async (id: number): Promise<User> => {
+    if (!id || typeof id !== "number" || isNaN(id) || id <= 0) {
+      throw new Error("ID de usuário inválido.");
+    }
+    const response = await apiClient.get(userAPI.getById(id));
+    return response.data;
+  },
+
+  create: async (user: Omit<User, 'id' | 'role'>): Promise<User> => {
+    // Note que removemos 'role' do Omit, pois o front não deve enviar o role na criação,
+    // o backend força "user" automaticamente.
+    const response = await apiClient.post(userAPI.create(), user);
+    return response.data;
+  },
+
+  update: async (id: number, user: Partial<User>): Promise<User> => {
+    if (!id || typeof id !== "number" || isNaN(id) || id <= 0) {
+      throw new Error("ID de usuário inválido.");
+    }
+    const response = await apiClient.put(userAPI.update(id), user);
+    return response.data;
+  },
+
+  delete: async (id: number): Promise<void> => {
+    if (!id || typeof id !== "number" || isNaN(id) || id <= 0) {
+      throw new Error("ID de usuário inválido.");
+    }
+    await apiClient.delete(userAPI.delete(id));
+  },
+};
+
+export const userService = userServiceObject;
+
+---- end of file ----
+
+==== C:\dev\AMS_HoldCrypto\frontend\src\features\user\store\usersStore.ts ====
+import { create } from 'zustand';
+import { userService, User } from '@/features/user/services/userService';
+import { UserFormValues } from '../types/UserFormValues';
+
+interface UserState {
+  users: User[];
+  loading: boolean;
+  error: string | null;
+  fetchUsers: () => Promise<void>;
+  addUser: (userData: UserFormValues) => Promise<boolean>; // Retorna true em sucesso
+  updateUser: (id: number, userData: Partial<UserFormValues>) => Promise<boolean>;
+  deleteUser: (id: number) => Promise<boolean>;
+}
+
+export const useUsersStore = create<UserState>((set, get) => ({
+  users: [],
+  loading: false,
+  error: null,
+
+  fetchUsers: async () => {
+    set({ loading: true, error: null });
+    try {
+      const users = await userService.getAll();
+      set({ users, loading: false });
+    } catch (err) {
+      set({ error: 'Falha ao carregar usuários.', loading: false });
+    }
+  },
+
+  addUser: async (userData) => {
+    try {
+      // Omit 'id' for creation
+      const newUser = await userService.create(userData);
+      set((state) => ({ users: [...state.users, newUser] }));
+      return true;
+    } catch (err) {
+      console.error("Erro ao adicionar usuário:", err);
+      return false;
+    }
+  },
+
+  updateUser: async (id, userData) => {
+    try {
+      const updatedUser = await userService.update(id, userData);
+      set((state) => ({
+        users: state.users.map((user) => (user.id === id ? updatedUser : user)),
+      }));
+      return true;
+    } catch (err) {
+      console.error("Erro ao atualizar usuário:", err);
+      return false;
+    }
+  },
+
+  deleteUser: async (id) => {
+    try {
+      await userService.delete(id);
+      set((state) => ({
+        users: state.users.filter((user) => user.id !== id),
+      }));
+      return true;
+    } catch (err) {
+      console.error("Erro ao deletar usuário:", err);
+      return false;
+    }
+  },
+}));
+
+---- end of file ----
+
+==== C:\dev\AMS_HoldCrypto\frontend\src\features\user\types\UserFormValues.ts ====
+export interface UserFormValues {
+  name: string;
+  email: string;
+  phone: string;
+  address: string;
+  password: string;
+  photo: string;
+}
+
+---- end of file ----
+

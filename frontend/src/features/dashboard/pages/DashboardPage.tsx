@@ -1,221 +1,181 @@
 'use client';
-import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { Box, Typography, Paper, Grid, useTheme, Divider, Avatar, CircularProgress, Container, Stack, Button, TextField } from '@mui/material';
-import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
-import currencyService from '@/features/currency/services/currencyService';
-import { Currency, History } from '@/features/currency/types/Currency';
-import authService from '@/features/auth/services/AuthServices';
 
-// --- FUNÇÃO DE FORMATAÇÃO ---
-const formatCurrencyValue = (value: number) => {
-    if (value >= 1_000_000_000) return `${(value / 1_000_000_000).toFixed(2)}B`;
-    if (value >= 1_000_000) return `${(value / 1_000_000).toFixed(2)}M`;
-    if (value >= 1_000) return `${(value / 1_000).toFixed(2)}K`;
-    return value.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-};
+import React, { useEffect, useState } from 'react';
+import { Box, CircularProgress, Container, Grid } from '@mui/material';
+import { useAuthUser } from '@/features/auth/store/useAuthStore';
+import { Plus, Calendar, Clock } from 'lucide-react';
 
-// --- COMPONENTES DA DASHBOARD ---
-const WalletCard = ({ currency }: { currency: Currency }) => {
-    const theme = useTheme();
-    const latestPrice = currency.histories?.[0]?.price || 0;
-    const userAmount = (Math.random() * 2); 
-    const userValue = latestPrice * userAmount;
+// Imports da Arquitetura
+// 1. ADICIONE useDashboardCurrencies AQUI
+import { 
+  useDashboardLoading, 
+  useDashboardError, 
+  useDashboardActions, 
+  useDashboardCurrencies 
+} from '@/features/dashboard/store/DashboardStore';
 
-    return (
-        <Paper sx={{ p: 2, bgcolor: '#1E1E1E', borderRadius: 4, height: '100%' }}>
-            <Box display="flex" alignItems="center" mb={1}>
-                <Avatar sx={{ bgcolor: theme.palette.primary.main, width: 32, height: 32, mr: 1, color: '#0B0B0B', fontWeight:'bold' }}>
-                    {currency.symbol.charAt(0)}
-                </Avatar>
-                <Typography fontWeight="bold">{currency.name}</Typography>
-            </Box>
-            <Typography variant="h5" fontWeight="bold">
-                R$ {formatCurrencyValue(userValue)}
-            </Typography>
-            <Typography variant="body2" color="text.secondary">{userAmount.toFixed(4)} {currency.symbol}</Typography>
-        </Paper>
-    );
-};
+import { StatsCards } from '@/features/dashboard/components/StatsCards';
+import { OverviewChart } from '@/features/dashboard/components/OverviewChart';
+import { HotList } from '@/features/dashboard/components/HotList';
+import { WalletGrid } from '@/features/dashboard/components/WalletGrid';
+import { SwapWidget } from '@/features/dashboard/components/SwapWidget';
+import CreateWalletModal from '@/features/wallet/components/CreateWalletModal';
+import TransactionsTable from '@/features/wallet/components/TransactionsTable';
+import walletService, { WalletTransaction } from '@/features/wallet/services/walletService';
 
-const HotList = ({ currencies, onSelectCoin, selectedCoin }: { currencies: Currency[], onSelectCoin: (coin: Currency) => void, selectedCoin: Currency | null }) => {
-    const theme = useTheme();
-    
-    const getChange = (histories: History[] | undefined) => {
-        if (!histories || histories.length < 2) return 0;
-        const sorted = [...histories].sort((a, b) => new Date(b.datetime).getTime() - new Date(a.datetime).getTime());
-        const latestPrice = sorted[0].price;
-        const previousPrice = sorted[1].price;
-        if (previousPrice === 0) return 0;
-        return ((latestPrice - previousPrice) / previousPrice) * 100;
-    };
-
-    return (
-        <Paper sx={{ p: 2, bgcolor: '#1E1E1E', borderRadius: 4, mb: 4 }}>
-            <Typography variant="h6" fontWeight="bold" gutterBottom>Hot List</Typography>
-            <Stack spacing={1}>
-                {currencies.map((coin) => {
-                    const change = getChange(coin.histories);
-                    const isPositive = change >= 0;
-                    const latestPrice = coin.histories?.[0]?.price || 0;
-                    const isSelected = selectedCoin?.id === coin.id;
-                    return (
-                        <Box 
-                            key={coin.id} 
-                            onClick={() => onSelectCoin(coin)}
-                            sx={{ 
-                                display: 'flex', 
-                                justifyContent: 'space-between', 
-                                alignItems: 'center',
-                                cursor: 'pointer',
-                                p: 1,
-                                borderRadius: 2,
-                                backgroundColor: isSelected ? 'rgba(240, 185, 11, 0.1)' : 'transparent',
-                                border: `1px solid ${isSelected ? theme.palette.primary.main : 'transparent'}`,
-                                '&:hover': {
-                                    backgroundColor: 'rgba(255, 255, 255, 0.05)'
-                                }
-                            }}
-                        >
-                            <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                                <Avatar sx={{ bgcolor: theme.palette.primary.main, width: 32, height: 32, mr: 1.5, color: '#0B0B0B', fontWeight:'bold' }}>
-                                    {coin.symbol.charAt(0)}
-                                </Avatar>
-                                <Box>
-                                    <Typography variant="body1" fontWeight="bold">{coin.symbol}</Typography>
-                                    <Typography variant="body2" color="text.secondary" sx={{ mt: -0.5 }}>{coin.name}</Typography>
-                                </Box>
-                            </Box>
-                            <Box sx={{ textAlign: 'right' }}>
-                                <Typography variant="body1" fontWeight="bold">
-                                    {latestPrice.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
-                                </Typography>
-                                <Typography variant="body2" fontWeight="bold" sx={{ color: isPositive ? theme.palette.success.main : theme.palette.error.main }}>
-                                    {isPositive ? '+' : ''}{change.toFixed(2)}%
-                                </Typography>
-                            </Box>
-                        </Box>
-                    );
-                })}
-            </Stack>
-        </Paper>
-    );
-};
-
-const SwapWidget = () => (
-    <Paper sx={{ p: 3, bgcolor: '#1E1E1E', borderRadius: 4 }}>
-        <Typography variant="h6" fontWeight="bold" gutterBottom>Swap</Typography>
-        <Stack spacing={2}>
-            <TextField label="Você Paga" defaultValue="0" variant="outlined" />
-            <TextField label="Você Recebe" defaultValue="0" variant="outlined" />
-            <Button variant="contained" color="primary" sx={{ fontWeight: 'bold', py: 1.5 }}>Swap</Button>
-        </Stack>
-    </Paper>
-);
-
-// --- PÁGINA PRINCIPAL DA DASHBOARD ---
 export default function DashboardPage() {
-  const router = useRouter();
-  const theme = useTheme();
-  const [currencies, setCurrencies] = useState<Currency[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [selectedCoin, setSelectedCoin] = useState<Currency | null>(null);
+    const user = useAuthUser();
+    const loading = useDashboardLoading();
+    const error = useDashboardError();
+    const { fetchDashboardData } = useDashboardActions();
+    
+    // 2. PEGUE AS MOEDAS DO STORE
+    const currencies = useDashboardCurrencies(); 
+    
+    const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+    const [transactions, setTransactions] = useState<WalletTransaction[]>([]);
+    
+    // Estado para data/hora
+    const [currentDate, setCurrentDate] = useState<string>("");
+    const [currentTime, setCurrentTime] = useState<string>("");
 
-  useEffect(() => {
-    const fetchData = async () => {
-      const token = localStorage.getItem("token");
-      if (!token) {
-        router.push("/login");
-        return;
-      }
-      try {
-        // Agora, só precisamos buscar as moedas, o perfil já é tratado no Header/Layout
-        const currencyData = await currencyService.getAll();
-        setCurrencies(currencyData);
-        if (currencyData.length > 0) {
-            setSelectedCoin(currencyData[0]);
-        }
-      } catch (error) {
-        console.error("Erro ao buscar dados da dashboard:", error);
-        router.push("/login");
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchData();
-  }, [router]);
+    // Atualiza relógio
+    useEffect(() => {
+        const updateTime = () => {
+            const now = new Date();
+            setCurrentDate(now.toLocaleDateString('pt-BR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }));
+            setCurrentTime(now.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }));
+        };
+        updateTime();
+        const timer = setInterval(updateTime, 60000);
+        return () => clearInterval(timer);
+    }, []);
 
-  // Prepara os dados do histórico para o gráfico da moeda selecionada
-  const chartData = selectedCoin?.histories
-    ?.map(h => ({ 
-        name: new Date(h.datetime).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit'}), 
-        price: h.price 
-    }))
-    .reverse();
+    useEffect(() => {
+        fetchDashboardData();
+    }, [fetchDashboardData]);
 
-  if (loading) {
-    return <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '80vh' }}><CircularProgress color="primary" /></Box>;
-  }
+    useEffect(() => {
+        const loadHistory = async () => {
+            if (user.id) {
+                try {
+                    const data = await walletService.getHistory(user.id);
+                    setTransactions(data);
+                } catch (e) {
+                    console.error("Erro histórico:", e);
+                }
+            }
+        };
+        if (!loading) loadHistory();
+    }, [user.id, loading]); 
 
-  return (
-    <Container maxWidth="xl" sx={{ py: 4 }}>
-        <Typography variant="h4" fontWeight="bold" gutterBottom>
-          Dashboard
-        </Typography>
-        
-        <Grid container spacing={4}>
-          {/* Coluna Principal (Gráfico e Carteiras) */}
-          <Grid item xs={12} lg={8}>
-            {/* Seção de Overview (Gráfico Dinâmico) */}
-            <Paper sx={{ p: 3, bgcolor: '#1E1E1E', borderRadius: 4, mb: 4 }}>
-              <Typography variant="h6" fontWeight="bold" gutterBottom>
-                {selectedCoin ? `Histórico de ${selectedCoin.name}` : 'Overview'}
-              </Typography>
-              <Box sx={{ height: 300 }}>
-                <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={chartData} margin={{ top: 10, right: 30, left: 20, bottom: 0 }}>
-                    <defs>
-                      <linearGradient id="colorPrice" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor={theme.palette.primary.main} stopOpacity={0.8}/>
-                        <stop offset="95%" stopColor={theme.palette.primary.main} stopOpacity={0}/>
-                      </linearGradient>
-                    </defs>
-                    <XAxis dataKey="name" stroke={theme.palette.text.secondary} fontSize={10} />
-                    <YAxis 
-                        stroke={theme.palette.text.secondary} 
-                        fontSize={10} 
-                        domain={['dataMin', 'dataMax']}
-                        tickFormatter={(value) => `$${formatCurrencyValue(value)}`}
-                    />
-                    <CartesianGrid strokeDasharray="3 3" stroke="#333" />
-                    <Tooltip 
-                        contentStyle={{ backgroundColor: 'rgba(30, 30, 30, 0.8)', border: 'none', borderRadius: theme.shape.borderRadius }} 
-                        labelStyle={{ color: theme.palette.primary.main, fontWeight: 'bold' }}
-                        formatter={(value) => [value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }), 'Preço']}
-                    />
-                    <Area type="monotone" dataKey="price" stroke={theme.palette.primary.main} fillOpacity={1} fill="url(#colorPrice)" />
-                  </AreaChart>
-                </ResponsiveContainer>
-              </Box>
-            </Paper>
+    if (error) {
+       return (
+         <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '80vh', flexDirection: 'column' }}>
+            <span className="text-red-500 font-bold text-lg mb-2">Erro de Conexão</span>
+            <span className="text-gray-400">{error}</span>
+         </Box>
+      );
+    }
 
-            {/* Seção Suas Carteiras */}
-            <Typography variant="h6" fontWeight="bold" sx={{ mb: 2 }}>Suas Carteiras</Typography>
-            <Grid container spacing={3}>
-              {currencies.slice(0, 4).map(currency => (
-                <Grid item xs={12} sm={6} md={3} key={currency.id}>
-                  <WalletCard currency={currency} />
+    if (loading) {
+      return (
+        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '80vh' }}>
+          <div className="flex flex-col items-center gap-4">
+             <CircularProgress sx={{ color: '#F0B90B' }} />
+             <span className="text-yellow-500 font-mono text-sm animate-pulse">SINCRONIZANDO BLOCKCHAIN...</span>
+          </div>
+        </Box>
+      );
+    }
+
+   return (
+        <Container maxWidth="xl" sx={{ p: 0 }}>
+            {/* Header da Página - Estilo "Welcome" */}
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+                <div>
+                    <h1 className="text-3xl font-bold text-white mb-1">
+                        Olá, <span className="text-yellow-500">{user.name?.split(' ')[0]}</span> 👋
+                    </h1>
+                    <div className="flex items-center gap-4 text-gray-400 text-sm font-medium">
+                        <div className="flex items-center gap-1.5">
+                            <Calendar size={14} className="text-yellow-500" />
+                            <span className="capitalize">{currentDate}</span>
+                        </div>
+                        <div className="hidden md:block h-1 w-1 rounded-full bg-gray-600"></div>
+                        <div className="flex items-center gap-1.5">
+                            <Clock size={14} className="text-yellow-500" />
+                            <span>{currentTime}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <button
+                    onClick={() => setIsCreateModalOpen(true)}
+                    className="flex items-center gap-2 bg-yellow-500 hover:bg-yellow-400 text-black px-5 py-2.5 rounded-xl font-bold transition-all shadow-[0_0_15px_rgba(240,185,11,0.3)] hover:shadow-[0_0_25px_rgba(240,185,11,0.5)] active:scale-95"
+                >
+                    <Plus size={20} strokeWidth={3} />
+                    Nova Carteira
+                </button>
+            </div>
+
+            {/* Cards de Estatísticas */}
+            <div className="mb-8">
+                <StatsCards />
+            </div>
+
+            {/* Grid Principal */}
+            <Grid container spacing={4}>
+                {/* Coluna Principal (Esquerda) */}
+                <Grid item xs={12} xl={8}>
+                    <div className="space-y-8">
+                        {/* Gráfico */}
+                        <div className="glass-panel p-1 rounded-3xl overflow-hidden">
+                            <OverviewChart />
+                        </div>
+                        
+                        {/* Carteiras */}
+                        <div>
+                            <div className="flex items-center justify-between mb-4">
+                                <h3 className="text-xl font-bold text-white flex items-center gap-2">
+                                    <span className="w-1.5 h-6 bg-yellow-500 rounded-full"></span>
+                                    Ativos em Carteira
+                                </h3>
+                            </div>
+                            <WalletGrid />
+                        </div>
+
+                        {/* Histórico */}
+                        <TransactionsTable transactions={transactions} />
+                    </div>
                 </Grid>
-              ))}
-            </Grid>
-          </Grid>
 
-          {/* Coluna Lateral (Hot List e Swap) */}
-          <Grid item xs={12} lg={4}>
-             <HotList currencies={currencies} onSelectCoin={setSelectedCoin} selectedCoin={selectedCoin} />
-             <SwapWidget />
-          </Grid>
-        </Grid>
-      </Container>
-  );
+                {/* Coluna Lateral (Direita) */}
+                <Grid item xs={12} xl={4}>
+                    <div className="space-y-8 sticky top-6">
+                        {/* Swap Widget */}
+                        <div className="glass-panel p-6 rounded-3xl border border-yellow-500/20 shadow-[0_0_30px_rgba(240,185,11,0.05)] relative overflow-hidden">
+                            <div className="absolute top-0 right-0 w-32 h-32 bg-yellow-500/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
+                            <SwapWidget />
+                        </div>
+
+                        {/* Hot List */}
+                        <div className="glass-panel p-6 rounded-3xl">
+                            <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                                🔥 Tendências de Mercado
+                            </h3>
+                            <HotList />
+                        </div>
+                    </div>
+                </Grid>
+            </Grid>
+
+            {/* 3. PASSE AS MOEDAS PARA O MODAL */}
+            <CreateWalletModal
+                open={isCreateModalOpen}
+                onClose={() => setIsCreateModalOpen(false)}
+                currencies={currencies} 
+            />
+        </Container>
+    );
 }

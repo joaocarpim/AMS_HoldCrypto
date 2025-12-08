@@ -2,23 +2,9 @@
 
 import { useState, ChangeEvent } from "react";
 import { useRouter } from "next/navigation";
-import Container from "@mui/material/Container";
-import Box from "@mui/material/Box";
-import Typography from "@mui/material/Typography";
-import TextField from "@mui/material/TextField";
-import Button from "@mui/material/Button";
-import CircularProgress from "@mui/material/CircularProgress";
-import Stack from "@mui/material/Stack";
-import Alert from "@mui/material/Alert";
-import IconButton from "@mui/material/IconButton";
-import InputAdornment from "@mui/material/InputAdornment";
-import Visibility from "@mui/icons-material/Visibility";
-import VisibilityOff from "@mui/icons-material/VisibilityOff";
-import Header from "@/shared/components/Header";
-import Footer from "@/shared/components/Footer";
-import { authFormBox } from "@/shared/theme/boxStyles";
-import { yellowField } from "@/shared/theme/fieldStyles";
-// CORREÇÃO FINAL: Usando uma importação nomeada com chaves { }
+import Link from "next/link";
+import Image from "next/image"; // <-- 1. Importação adicionada
+import { User, Mail, Phone, MapPin, Lock, Camera, ArrowRight, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
 import { userService } from "@/features/user/services/userService";
 
 export default function RegisterPage() {
@@ -31,12 +17,11 @@ export default function RegisterPage() {
     password: "",
     photo: "",
   });
-  const [showPassword, setShowPassword] = useState(false);
+  
   const [loading, setLoading] = useState(false);
-  const [success, setSuccess] = useState("");
-  const [error, setError] = useState("");
+  const [status, setStatus] = useState<{ type: 'success' | 'error' | null, message: string }>({ type: null, message: '' });
 
-  const handlePhotoChange = async (e: ChangeEvent<HTMLInputElement>) => {
+  const handlePhotoChange = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     const reader = new FileReader();
@@ -52,123 +37,128 @@ export default function RegisterPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError("");
-    setSuccess("");
+    setStatus({ type: null, message: '' });
     setLoading(true);
+
     try {
-      // Agora a chamada funciona corretamente
       await userService.create(form);
-      setSuccess("Usuário registrado com sucesso!");
-      setForm({
-        name: "",
-        email: "",
-        phone: "",
-        address: "",
-        password: "",
-        photo: "",
-      });
+      setStatus({ type: 'success', message: 'Conta criada com sucesso! Redirecionando...' });
       setTimeout(() => router.push("/login"), 2000);
     } catch (err: any) {
-      setError(err.response?.data?.message || "Erro ao registrar usuário.");
-    } finally {
+      const errorMsg = err.response?.data?.message || "Erro ao criar conta. Verifique os dados.";
+      setStatus({ type: 'error', message: errorMsg });
       setLoading(false);
     }
   };
 
+  const InputField = ({ icon: Icon, ...props }: any) => (
+    <div className="relative group">
+      <Icon className="absolute left-4 top-3.5 text-gray-500 group-focus-within:text-yellow-500 transition-colors" size={20} />
+      <input 
+        className="w-full bg-black/40 border border-white/10 rounded-xl py-3 pl-12 pr-4 text-white placeholder-gray-600 focus:outline-none focus:border-yellow-500/50 focus:ring-1 focus:ring-yellow-500/50 transition-all"
+        {...props}
+      />
+    </div>
+  );
+
   return (
-    <>
-      <Header />
-      <Container maxWidth="sm" sx={{ minHeight: "80vh", display: "flex", alignItems: "center" }}>
-        <Box component="form" onSubmit={handleSubmit} sx={authFormBox}>
-          <Typography variant="h4" fontWeight="bold" color="primary" textAlign="center" mb={4}>
-            Registrar Usuário
-          </Typography>
-          <Stack spacing={3}>
-            {success && (
-              <Alert severity="success" sx={{ fontWeight: "bold", textAlign: "center" }}>
-                {success}
-              </Alert>
+    <div className="min-h-screen flex items-center justify-center p-4 py-10">
+      <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-yellow-500/5 rounded-full blur-[120px] pointer-events-none"></div>
+      <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-blue-600/5 rounded-full blur-[100px] pointer-events-none"></div>
+
+      <div className="glass-panel w-full max-w-2xl p-8 md:p-10 rounded-3xl relative z-10 shadow-2xl border border-white/10">
+        
+        <div className="text-center mb-8">
+          <h1 className="text-3xl font-bold text-white tracking-tight mb-2">Junte-se à <span className="text-yellow-500">HoldCrypto</span></h1>
+          <p className="text-gray-400">Crie sua conta e comece a operar no mercado global.</p>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-6">
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <div className="space-y-1">
+              <label className="text-xs font-bold text-gray-500 uppercase tracking-wider ml-1">Nome Completo</label>
+              <InputField icon={User} name="name" placeholder="Ex: Ana Silva" value={form.name} onChange={handleChange} required />
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-xs font-bold text-gray-500 uppercase tracking-wider ml-1">E-mail</label>
+              <InputField icon={Mail} name="email" type="email" placeholder="Ex: ana@crypto.com" value={form.email} onChange={handleChange} required />
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-xs font-bold text-gray-500 uppercase tracking-wider ml-1">Telefone</label>
+              <InputField icon={Phone} name="phone" placeholder="(00) 00000-0000" value={form.phone} onChange={handleChange} required />
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-xs font-bold text-gray-500 uppercase tracking-wider ml-1">Cidade/Estado</label>
+              <InputField icon={MapPin} name="address" placeholder="Ex: São Paulo, SP" value={form.address} onChange={handleChange} required />
+            </div>
+          </div>
+
+          <div className="space-y-1">
+            <label className="text-xs font-bold text-gray-500 uppercase tracking-wider ml-1">Senha de Acesso</label>
+            <InputField icon={Lock} name="password" type="password" placeholder="Crie uma senha forte" value={form.password} onChange={handleChange} required />
+          </div>
+
+          <div className="space-y-1">
+            <label className="text-xs font-bold text-gray-500 uppercase tracking-wider ml-1">Foto de Perfil</label>
+            <label className={`flex items-center justify-center gap-3 w-full border border-dashed rounded-xl py-4 cursor-pointer transition-all ${form.photo ? 'border-yellow-500/50 bg-yellow-500/5' : 'border-white/20 hover:border-white/40 hover:bg-white/5'}`}>
+              <input type="file" accept="image/*" onChange={handlePhotoChange} className="hidden" disabled={loading} />
+              {form.photo ? (
+                <>
+                  {/* 2. CORREÇÃO: Div relativa para conter o Image com fill */}
+                  <div className="relative w-8 h-8 rounded-full overflow-hidden border border-yellow-500">
+                    <Image 
+                      src={form.photo} 
+                      alt="Preview" 
+                      fill // Preenche o pai (w-8 h-8)
+                      className="object-cover" // Mantém a proporção
+                      unoptimized // Importante para imagens em base64 locais
+                    />
+                  </div>
+                  <span className="text-yellow-500 font-medium text-sm">Foto carregada com sucesso</span>
+                </>
+              ) : (
+                <>
+                  <Camera size={20} className="text-gray-400" />
+                  <span className="text-gray-400 text-sm">Clique para enviar uma foto</span>
+                </>
+              )}
+            </label>
+          </div>
+
+          {status.message && (
+            <div className={`flex items-center gap-3 p-4 rounded-xl border ${status.type === 'success' ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' : 'bg-red-500/10 border-red-500/20 text-red-400'}`}>
+              {status.type === 'success' ? <CheckCircle size={20} /> : <AlertCircle size={20} />}
+              <span className="text-sm font-medium">{status.message}</span>
+            </div>
+          )}
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full bg-yellow-500 hover:bg-yellow-400 text-black font-bold py-4 rounded-xl transition-all shadow-[0_0_20px_rgba(240,185,11,0.2)] hover:shadow-[0_0_30px_rgba(240,185,11,0.4)] active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-4"
+          >
+            {loading ? (
+              <><Loader2 className="animate-spin" size={20} /> Criando Conta...</>
+            ) : (
+              <>Começar Agora <ArrowRight size={20} /></>
             )}
-            {error && (
-              <Alert severity="error" sx={{ fontWeight: "bold", textAlign: "center" }}>
-                {error}
-              </Alert>
-            )}
-            <TextField label="Nome" name="name" value={form.name} onChange={handleChange} fullWidth required disabled={loading} variant="outlined" sx={yellowField} />
-            <TextField label="Email" name="email" type="email" value={form.email} onChange={handleChange} fullWidth required disabled={loading} variant="outlined" sx={yellowField} />
-            <TextField label="Telefone" name="phone" value={form.phone} onChange={handleChange} fullWidth required disabled={loading} variant="outlined" sx={yellowField} />
-            <TextField label="Endereço" name="address" value={form.address} onChange={handleChange} fullWidth required disabled={loading} variant="outlined" sx={yellowField} />
-            <TextField
-              label="Senha"
-              name="password"
-              type={showPassword ? "text" : "password"}
-              value={form.password}
-              onChange={handleChange}
-              fullWidth
-              required
-              disabled={loading}
-              variant="outlined"
-              sx={yellowField}
-              InputProps={{
-                endAdornment: (
-                  <InputAdornment position="end">
-                    <IconButton
-                      aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
-                      onClick={() => setShowPassword(v => !v)}
-                      edge="end"
-                      sx={{ color: "#fcd34d" }}
-                      disabled={loading}
-                    >
-                      {showPassword ? <VisibilityOff /> : <Visibility />}
-                    </IconButton>
-                  </InputAdornment>
-                ),
-              }}
-            />
-            <Button
-              variant="outlined"
-              component="label"
-              sx={{
-                borderColor: "#fcd34d",
-                color: "#fcd34d",
-                fontWeight: "bold",
-                borderRadius: 2,
-                "&:hover": { borderColor: "#ffe066", color: "#ffe066" },
-              }}
-              disabled={loading}
-            >
-              {form.photo ? "Foto selecionada" : "Enviar Foto"}
-              <input
-                type="file"
-                name="photo"
-                accept="image/*"
-                hidden
-                onChange={handlePhotoChange}
-                disabled={loading}
-              />
-            </Button>
-            <Button
-              type="submit"
-              variant="contained"
-              fullWidth
-              sx={{
-                bgcolor: "#fcd34d",
-                color: "#18181b",
-                fontWeight: "bold",
-                fontSize: "1.1rem",
-                borderRadius: 2,
-                boxShadow: 3,
-                "&:hover": { bgcolor: "#ffe066" },
-                py: 1.5,
-              }}
-              disabled={loading}
-            >
-              {loading ? <CircularProgress size={24} color="inherit" /> : "Registrar"}
-            </Button>
-          </Stack>
-        </Box>
-      </Container>
-      <Footer />
-    </>
+          </button>
+
+          <div className="text-center pt-2">
+            <p className="text-gray-400 text-sm">
+              Já é um investidor?{' '}
+              <Link href="/login" className="text-yellow-500 font-bold hover:text-yellow-400 hover:underline transition-all">
+                Fazer Login
+              </Link>
+            </p>
+          </div>
+
+        </form>
+      </div>
+    </div>
   );
 }
