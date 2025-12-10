@@ -57,8 +57,9 @@ export const useDashboardStore = create<DashboardState>((set, get) => ({
       set({
         currencies: currencyData,
         wallets: walletData,
-        selectedCoin: currencyData.length > 0 ? currencyData[0] : null,
-        loading: false,
+          // Tenta achar o BTC. Se não achar, pega o primeiro da lista. Se a lista for vazia, null.
+          selectedCoin: currencyData.find(c => c.symbol === 'BTC') || currencyData[0] || null,     
+          loading: false,
         error: null,
       });
       console.log("DashboardStore: State updated successfully.");

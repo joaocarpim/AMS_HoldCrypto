@@ -1,20 +1,22 @@
 // Caminho: backend/walletApi/Application/Services/WalletService.cs
-using System.Net.Http; // Para HttpClient
-using System.Text.Json; // Para JsonDocument e JsonSerializer
-using System.Threading.Tasks; // Para Task
-using System.Linq; // Para FirstOrDefault
-using System.Globalization; // Para TryParse
-using System.Collections.Generic; // Para List
-using System; // Para Exception
+using System.Net.Http;
+using System.Text.Json;
+using System.Threading.Tasks;
+using System.Linq;
+using System.Globalization;
+using System.Collections.Generic;
+using System;
 
-// A linha 'using AMS_HoldCrypto.WalletApi.Domain.Entities;' foi REMOVIDA
+// Mantendo seus usings originais
+// using AMS_HoldCrypto.WalletApi.Domain.Entities; (Se precisar descomente)
 
 public class WalletService : IWalletService
 {
     private readonly IWalletRepository _repo;
     private readonly IHttpClientFactory _httpClientFactory;
     
-    private const string CurrencyApiUrl = "http://localhost:5026/currency"; 
+    // CORREÇÃO 1: Ajuste da URL para bater no Gateway corretamente (com /api)
+    private const string CurrencyApiUrl = "http://localhost:5026/api/currency"; 
 
     public WalletService(IWalletRepository repo, IHttpClientFactory httpClientFactory)
     {
@@ -22,29 +24,28 @@ public class WalletService : IWalletService
         _httpClientFactory = httpClientFactory ?? throw new ArgumentNullException(nameof(httpClientFactory));
     }
 
-    // --- Métodos Existentes ---
+    // --- Métodos CRUD (Mantidos iguais) ---
     public IEnumerable<Wallet> GetUserWallets(int userId, WalletCategory? category = null)
     {
         return _repo.GetWalletsByUser(userId, category);
     }
     public Wallet GetWallet(int id) { return _repo.GetWalletById(id); }
+    
     public Wallet CreateWallet(Wallet wallet)
     {
         var existing = _repo.GetWalletsByUser(wallet.UserId)
                             .FirstOrDefault(w => w.CurrencySymbol.Equals(wallet.CurrencySymbol, StringComparison.OrdinalIgnoreCase));
         
-        if (existing != null)
-        {
-            throw new InvalidOperationException($"O usuário já possui uma carteira para {wallet.CurrencySymbol}.");
-        }
-        
+        if (existing != null) throw new InvalidOperationException($"O usuário já possui uma carteira para {wallet.CurrencySymbol}.");
         return _repo.CreateWallet(wallet);
     }
+
     public bool Deposit(int walletId, decimal amount) {
        var tx = new WalletTransaction { WalletId = walletId, Type = TransactionType.Deposit, Amount = amount };
-        _repo.CreateTransaction(tx);
-        return true;
+       _repo.CreateTransaction(tx);
+       return true;
     }
+
     public bool Withdraw(int walletId, decimal amount) {
        var wallet = _repo.GetWalletById(walletId);
        if (wallet == null || wallet.Balance < amount) return false;
@@ -52,98 +53,132 @@ public class WalletService : IWalletService
        _repo.CreateTransaction(tx);
        return true;
     }
+
     public bool Transfer(int fromWalletId, int toWalletId, decimal amount)
     {
         return _repo.Transfer(fromWalletId, toWalletId, amount);
     }
 
-    // --- MÉTODO DE TRADE (RF-05) ---
+    // --- O MÈTODO CRÍTICO DE TRADE (Refinado para Nota 10) ---
     public async Task<Tuple<Wallet, Wallet>> PerformTrade(int userId, int fromWalletId, string toCurrencySymbol, decimal amountToSpend)
     {
-        // ... (lógica de trade existente) ...
         var fromWallet = _repo.GetWalletById(fromWalletId);
+        
+        // Validações Básicas
         if (fromWallet == null || fromWallet.UserId != userId)
-            throw new InvalidOperationException("Carteira de origem inválida ou não pertence ao usuário.");
+            throw new InvalidOperationException("Carteira de origem inválida.");
+        
         if (fromWallet.Balance < amountToSpend)
-            throw new InvalidOperationException("Saldo insuficiente na carteira de origem.");
+            throw new InvalidOperationException($"Saldo insuficiente. Você tem {fromWallet.Balance} {fromWallet.CurrencySymbol}.");
 
+        // Busca ou Cria a Carteira de Destino
         var toWallet = _repo.GetWalletsByUser(userId)
                             .FirstOrDefault(w => w.CurrencySymbol.Equals(toCurrencySymbol, StringComparison.OrdinalIgnoreCase));
 
         if (toWallet == null)
         {
-            toWallet = new Wallet { UserId = userId, Name = toCurrencySymbol, CurrencySymbol = toCurrencySymbol, Category = WalletCategory.Spot, Balance = 0 };
+            toWallet = new Wallet { 
+                UserId = userId, 
+                Name = toCurrencySymbol, 
+                CurrencySymbol = toCurrencySymbol, 
+                Category = WalletCategory.Spot, 
+                Balance = 0 
+            };
             toWallet = _repo.CreateWallet(toWallet);
         }
 
         string fromSymbol = fromWallet.CurrencySymbol;
         string toSymbol = toCurrencySymbol;
         
-        decimal price;
-        decimal amountToReceive;
+        decimal amountToReceive = 0;
 
-        if (fromSymbol == "BRL") 
+        // Lógica de Conversão (Triangulação via BRL ou USD)
+        // Assume que a API retorna o preço unitário em BRL/USD
+        if (fromSymbol == toSymbol) 
+             throw new InvalidOperationException("Não é possível trocar uma moeda por ela mesma.");
+
+        if (fromSymbol == "BRL") // Compra direta (BRL -> BTC)
         {
-            price = await GetPriceFromCurrencyApi(toSymbol);
-            if (price == 0) throw new InvalidOperationException($"Preço para {toSymbol} é zero.");
-            amountToReceive = amountToSpend / price;
+            decimal priceTo = await GetPriceFromCurrencyApi(toSymbol);
+            if (priceTo <= 0) throw new InvalidOperationException($"Preço inválido para {toSymbol}.");
+            amountToReceive = amountToSpend / priceTo;
         }
-        else if (toSymbol == "BRL") 
+        else if (toSymbol == "BRL") // Venda direta (BTC -> BRL)
         {
-            price = await GetPriceFromCurrencyApi(fromSymbol);
-            if (price == 0) throw new InvalidOperationException($"Preço para {fromSymbol} é zero.");
-            amountToReceive = amountToSpend * price;
+            decimal priceFrom = await GetPriceFromCurrencyApi(fromSymbol);
+            if (priceFrom <= 0) throw new InvalidOperationException($"Preço inválido para {fromSymbol}.");
+            amountToReceive = amountToSpend * priceFrom;
         }
-        else 
+        else // Troca entre Criptos (BTC -> ETH)
         {
-             var fromPriceBRL = await GetPriceFromCurrencyApi(fromSymbol);
-             var toPriceBRL = await GetPriceFromCurrencyApi(toSymbol);
-             if (fromPriceBRL == 0 || toPriceBRL == 0)
-                throw new InvalidOperationException("Não foi possível obter os preços para a troca.");
-             decimal valueInBRL = amountToSpend * fromPriceBRL;
-             amountToReceive = valueInBRL / toPriceBRL;
+            // 1. Converte Origem para Lastro (BRL)
+            decimal fromPriceBRL = await GetPriceFromCurrencyApi(fromSymbol);
+            // 2. Pega preço do Destino em Lastro (BRL)
+            decimal toPriceBRL = await GetPriceFromCurrencyApi(toSymbol);
+
+            if (fromPriceBRL <= 0 || toPriceBRL <= 0)
+                throw new InvalidOperationException("Falha ao obter cotações para conversão.");
+
+            decimal valueInBRL = amountToSpend * fromPriceBRL;
+            amountToReceive = valueInBRL / toPriceBRL;
         }
 
+        // CORREÇÃO 2: Arredondamento para 8 casas decimais (Padrão Bitcoin)
+        // Isso evita erros de dízima periódica no banco de dados.
+        amountToReceive = Math.Round(amountToReceive, 8);
+
+        if (amountToReceive <= 0)
+            throw new InvalidOperationException("O valor da troca é muito baixo.");
+
+        // Executa a transação no repositório
         var (updatedFromWallet, updatedToWallet) = _repo.ExecuteTrade(
             fromWalletId, toWallet.Id, amountToSpend, amountToReceive);
         
         return Tuple.Create(updatedFromWallet, updatedToWallet);
     }
 
-    // --- MÉTODO DE HISTÓRICO (RF-09) ---
     public IEnumerable<WalletTransaction> GetTransactionsByUser(int userId)
     {
-        // Simplesmente repassa a chamada para o repositório
         return _repo.GetTransactionsByUser(userId);
     }
 
-    // --- Método auxiliar GetPriceFromCurrencyApi ---
+    // --- Busca Preço no Microserviço de Currency ---
     private async Task<decimal> GetPriceFromCurrencyApi(string symbol)
     {
-        var client = _httpClientFactory.CreateClient();
-        var response = await client.GetAsync(CurrencyApiUrl); 
-        response.EnsureSuccessStatusCode();
+        // Se for BRL ou USD (Stablecoin base), vale 1
+        if (symbol == "BRL" || symbol == "USD") return 1.0m;
 
-        var stream = await response.Content.ReadAsStreamAsync();
-        var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
-        var currencies = await JsonSerializer.DeserializeAsync<List<CurrencyPriceDTO>>(stream, options);
-        
-        var targetCurrency = currencies?.FirstOrDefault(c => c.Symbol.Equals(symbol, StringComparison.OrdinalIgnoreCase));
-        
-        if (targetCurrency?.Histories != null && targetCurrency.Histories.Any())
+        try 
         {
-            var latestPrice = targetCurrency.Histories
-                                .OrderByDescending(h => h.Datetime)
-                                .First().Price;
-            return (decimal)latestPrice; // A API da CurrencyApi já retorna decimal
-        }
+            var client = _httpClientFactory.CreateClient();
+            // Chama o Gateway na rota corrigida /api/currency
+            var response = await client.GetAsync(CurrencyApiUrl); 
+            response.EnsureSuccessStatusCode();
 
-        if (symbol == "BRL") return 1.0m; 
+            var stream = await response.Content.ReadAsStreamAsync();
+            var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+            var currencies = await JsonSerializer.DeserializeAsync<List<CurrencyPriceDTO>>(stream, options);
+            
+            var targetCurrency = currencies?.FirstOrDefault(c => c.Symbol.Equals(symbol, StringComparison.OrdinalIgnoreCase));
+            
+            if (targetCurrency?.Histories != null && targetCurrency.Histories.Any())
+            {
+                // Pega o preço mais recente baseada na data
+                var latestPrice = targetCurrency.Histories
+                                                .OrderByDescending(h => h.Datetime)
+                                                .First().Price;
+                return (decimal)latestPrice;
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Erro ao buscar cotação: {ex.Message}");
+        }
         
-        throw new InvalidOperationException($"Preço para {symbol} não encontrado na CurrencyApi.");
+        return 0m; // Retorna 0 em caso de falha para tratar no método acima
     }
 
-    // DTOs auxiliares internos
+    // DTOs internos para deserialização
     private class CurrencyPriceDTO
     {
         public int Id { get; set; }
@@ -153,6 +188,6 @@ public class WalletService : IWalletService
     private class HistoryPriceDTO
     {
         public DateTime Datetime { get; set; }
-        public decimal Price { get; set; } // Corrigido para decimal
+        public decimal Price { get; set; }
     }
 }

@@ -1,8 +1,8 @@
 'use client';
-import { useMemo } from 'react';
-import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, ReferenceLine, Area, AreaChart } from 'recharts';
+import { useMemo, useState } from 'react';
+import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 import { useDashboardSelectedCoin } from '../store/DashboardStore';
-import { TrendingUp, TrendingDown, Minus, Activity } from 'lucide-react';
+import { TrendingUp, TrendingDown, Activity, Calendar } from 'lucide-react';
 
 const formatChartValue = (value: number) => {
   if (value >= 1000) return `${(value / 1000).toFixed(1)}k`;
@@ -28,51 +28,59 @@ const CustomTooltip = ({ active, payload, label, color }: any) => {
   return null;
 };
 
+// Tipos de Filtro
+type TimeRange = '24H' | '7D' | '30D';
+
 export const OverviewChart = () => {
   const selectedCoin = useDashboardSelectedCoin();
+  const [timeRange, setTimeRange] = useState<TimeRange>('24H');
 
-  // 1. Preparação dos Dados
+  // 1. Preparação e Filtragem dos Dados
   const chartData = useMemo(() => {
-    // Se não tiver histórico, retorna array vazio
     if (!selectedCoin?.histories || selectedCoin.histories.length === 0) return [];
     
-    const sortedAll = [...selectedCoin.histories].sort((a, b) => 
-        new Date(a.datetime).getTime() - new Date(b.datetime).getTime()
-    );
+    // Data de corte baseada no filtro
+    const now = new Date();
+    const cutoffDate = new Date();
 
-    // Pega os últimos 50 registros para não poluir o gráfico
-    const recentHistory = sortedAll.slice(-50);
+    if (timeRange === '24H') {
+        cutoffDate.setHours(now.getHours() - 24);
+    } else if (timeRange === '7D') {
+        cutoffDate.setDate(now.getDate() - 7);
+    } else if (timeRange === '30D') {
+        cutoffDate.setDate(now.getDate() - 30);
+    }
 
-    return recentHistory.map(h => ({
-        name: new Date(h.datetime).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
+    // Filtra e Ordena
+    const filteredHistory = selectedCoin.histories
+        .filter(h => new Date(h.datetime) >= cutoffDate) // Só pega dados após o corte
+        .sort((a, b) => new Date(a.datetime).getTime() - new Date(b.datetime).getTime()); // Antigo -> Novo
+
+    // Se o filtro resultar em vazio (ex: não tem dados de 30 dias), mostra tudo ou um fallback
+    const finalData = filteredHistory.length > 0 ? filteredHistory : selectedCoin.histories;
+
+    return finalData.map(h => ({
+        name: new Date(h.datetime).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', day: timeRange !== '24H' ? '2-digit' : undefined }),
         price: Number(h.price),
+        rawDate: h.datetime
     }));
-  }, [selectedCoin]);
+  }, [selectedCoin, timeRange]);
 
   // 2. Lógica de Tendência e Cores
-  const { chartColor, isPositive, startPrice, endPrice, percentageChange } = useMemo(() => {
-    // Valores padrão para quando não tem dados
+  const { chartColor, isPositive, percentageChange, endPrice } = useMemo(() => {
     if (!chartData || chartData.length === 0) {
-        return { chartColor: '#F0B90B', isPositive: true, startPrice: 0, endPrice: 0, percentageChange: 0 };
-    }
-    
-    // Se tiver apenas 1 ponto de dado (acabou de criar a moeda)
-    if (chartData.length === 1) {
-        const price = chartData[0].price;
-        return { chartColor: '#F0B90B', isPositive: true, startPrice: price, endPrice: price, percentageChange: 0 };
+        return { chartColor: '#F0B90B', isPositive: true, percentageChange: 0, endPrice: 0 };
     }
     
     const start = chartData[0].price;
     const end = chartData[chartData.length - 1].price;
     const isPos = end >= start;
-    
-    const color = isPos ? '#22c55e' : '#ef4444'; // Verde ou Vermelho
+    const color = isPos ? '#22c55e' : '#ef4444'; 
     const percent = start === 0 ? 0 : ((end - start) / start) * 100;
 
     return { 
         chartColor: color, 
         isPositive: isPos, 
-        startPrice: start, 
         endPrice: end,
         percentageChange: percent
     };
@@ -80,7 +88,7 @@ export const OverviewChart = () => {
 
   const TrendIcon = isPositive ? TrendingUp : TrendingDown;
 
-  // --- ESTADO VAZIO (Nenhuma moeda selecionada ou sem dados) ---
+  // --- ESTADO VAZIO ---
   if (!selectedCoin || !chartData || chartData.length === 0) {
       return (
         <div className="glass-panel p-6 rounded-3xl h-[400px] flex flex-col items-center justify-center text-center border border-white/5 relative overflow-hidden">
@@ -90,9 +98,8 @@ export const OverviewChart = () => {
                     <Activity className="text-gray-600" size={32} />
                 </div>
                 <h3 className="text-gray-300 font-bold mb-1">Mercado Silencioso</h3>
-                {/* CORREÇÃO AQUI: Trocamos " por &quot; */}
                 <p className="text-gray-600 text-sm max-w-xs">
-                    Selecione uma moeda na lista &quot;Tendências&quot; para ver o gráfico detalhado.
+                    Sem dados suficientes para o período selecionado.
                 </p>
             </div>
         </div>
@@ -102,7 +109,7 @@ export const OverviewChart = () => {
   return (
     <div className="glass-panel p-6 rounded-3xl border border-white/5 relative overflow-hidden group h-[450px] flex flex-col">
         {/* Header do Gráfico */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-4 z-10 relative">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4 z-10 relative">
         
         {/* Info Moeda */}
         <div className="flex items-center gap-4">
@@ -124,27 +131,39 @@ export const OverviewChart = () => {
                         {isPositive ? '+' : ''}{percentageChange.toFixed(2)}%
                         <TrendIcon size={14} />
                     </span>
-                    <span className="text-[10px] text-gray-500 uppercase tracking-wider">Nas últimas 24h</span>
                 </div>
             </div>
         </div>
+
+        {/* CONTROLES DE FILTRO (NOVO) */}
+        <div className="flex bg-black/20 p-1 rounded-xl border border-white/5">
+            {(['24H', '7D', '30D'] as TimeRange[]).map((range) => (
+                <button
+                    key={range}
+                    onClick={() => setTimeRange(range)}
+                    className={`px-3 py-1 rounded-lg text-xs font-bold transition-all ${
+                        timeRange === range 
+                        ? 'bg-white/10 text-white shadow-sm' 
+                        : 'text-gray-500 hover:text-white hover:bg-white/5'
+                    }`}
+                >
+                    {range}
+                </button>
+            ))}
+        </div>
         
         {/* Preço Atual */}
-        <div className="text-right">
-             <p className="text-3xl font-bold font-mono text-white tracking-tight drop-shadow-md">
+        <div className="hidden sm:block text-right">
+             <p className="text-2xl font-bold font-mono text-white tracking-tight">
                 R$ {endPrice.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 8 })}
              </p>
-             <div className="flex items-center justify-end gap-2 text-[10px] text-gray-400 mt-1 uppercase font-bold tracking-widest">
-                <span className={`w-2 h-2 rounded-full animate-pulse`} style={{ backgroundColor: chartColor }}></span>
-                Ao vivo
-             </div>
         </div>
       </div>
 
       {/* Área do Gráfico */}
       <div className="flex-1 w-full -ml-2 relative">
         <ResponsiveContainer width="100%" height="100%">
-          <AreaChart data={chartData} margin={{ top: 20, right: 10, left: 0, bottom: 0 }}>
+          <AreaChart data={chartData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
             <defs>
                 <linearGradient id="colorPrice" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor={chartColor} stopOpacity={0.3}/>
@@ -152,7 +171,15 @@ export const OverviewChart = () => {
                 </linearGradient>
             </defs>
             <CartesianGrid strokeDasharray="3 3" stroke="#ffffff08" vertical={false} />
-            <XAxis dataKey="name" stroke="#525252" fontSize={10} tickLine={false} axisLine={false} tickMargin={10} minTickGap={50} />
+            <XAxis 
+                dataKey="name" 
+                stroke="#525252" 
+                fontSize={10} 
+                tickLine={false} 
+                axisLine={false} 
+                tickMargin={10} 
+                minTickGap={30} 
+            />
             <YAxis 
                 stroke="#525252" 
                 fontSize={10} 
@@ -173,7 +200,7 @@ export const OverviewChart = () => {
                 fillOpacity={1} 
                 fill="url(#colorPrice)" 
                 activeDot={{ r: 6, strokeWidth: 0, fill: '#fff' }}
-                animationDuration={1500}
+                animationDuration={1000}
             />
           </AreaChart>
         </ResponsiveContainer>

@@ -1,3 +1,4 @@
+// Caminho: frontend/src/features/dashboard/components/SwapWidget.tsx
 'use client';
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { CircularProgress } from '@mui/material';
@@ -21,7 +22,6 @@ export const SwapWidget = () => {
     const [estimatedReceive, setEstimatedReceive] = useState<number>(0);
     const [isLoading, setIsLoading] = useState(false);
 
-    // Filtra carteiras com saldo
     const spendableWallets = useMemo(() => wallets.filter(w => Number(w.balance) > 0), [wallets]);
     
     const selectedWallet = useMemo(() => 
@@ -30,62 +30,53 @@ export const SwapWidget = () => {
 
     const getPrice = useCallback((symbol: string) => {
         if (!symbol) return 0;
-        if (symbol === 'BRL') return 1; 
+        if (symbol === 'BRL' || symbol === 'USD') return 1; 
         
         const currency = currencies.find(c => c.symbol === symbol);
+        // Pega o histórico mais recente
         if (!currency || !currency.histories || currency.histories.length === 0) return 0;
-
-        const sortedHistory = [...currency.histories].sort((a, b) => 
-            new Date(b.datetime).getTime() - new Date(a.datetime).getTime()
+        
+        // Ordena por data decrescente
+        const latest = currency.histories.reduce((prev, current) => 
+            (new Date(prev.datetime) > new Date(current.datetime)) ? prev : current
         );
-        return sortedHistory[0].price;
+        
+        return latest.price;
     }, [currencies]);
 
-    // --- CÁLCULO MÁGICO EM TEMPO REAL ---
+    // Cálculo em tempo real
     useEffect(() => {
         if (!amountToSpend || !selectedWallet || !toCurrencySymbol) {
             setEstimatedReceive(0);
             return;
         }
 
-        const amount = Number(amountToSpend);
-        const priceFrom = getPrice(selectedWallet.currencySymbol);
-        const priceTo = getPrice(toCurrencySymbol);
-
-        if (priceTo === 0) {
+        const amount = parseFloat(amountToSpend);
+        if (isNaN(amount) || amount <= 0) {
             setEstimatedReceive(0);
             return;
         }
 
+        const priceFrom = getPrice(selectedWallet.currencySymbol);
+        const priceTo = getPrice(toCurrencySymbol);
+
+        if (priceTo === 0 || priceFrom === 0) {
+            setEstimatedReceive(0);
+            return;
+        }
+
+        // Fórmula de Triangulação: (Qtd * PrecoOrigem) / PrecoDestino
         const estimated = (amount * priceFrom) / priceTo;
         setEstimatedReceive(estimated);
 
     }, [amountToSpend, selectedWallet, toCurrencySymbol, getPrice]);
 
-    // --- CORREÇÃO DO BOTÃO MÁX (Arredondamento Seguro) ---
     const handleMaxClick = () => {
         if (selectedWallet) {
-            const rawBalance = Number(selectedWallet.balance);
-            
-            // CORREÇÃO: Arredonda para baixo na 8ª casa decimal.
-            // Isso evita erros de float tipo 0.00000000001 a mais que o saldo real.
-            const safeBalance = Math.floor(rawBalance * 100000000) / 100000000; 
-            
-            setAmountToSpend(safeBalance.toString());
+            // Usa o saldo exato sem arredondar para baixo excessivamente
+            setAmountToSpend(selectedWallet.balance.toString());
         }
     };
-
-    const fromOptions = spendableWallets.map(w => ({
-        value: w.id,
-        label: `${w.currencySymbol} - ${w.name}`
-    }));
-
-    const toOptions = currencies
-        .filter(c => c.symbol !== selectedWallet?.currencySymbol)
-        .map(c => ({
-            value: c.symbol,
-            label: `${c.name} (${c.symbol})`
-        }));
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -101,76 +92,61 @@ export const SwapWidget = () => {
 
         try {
             await walletService.trade(tradeRequest);
-            showNotification(`Sucesso! Você recebeu ~${estimatedReceive.toLocaleString('pt-BR', { maximumFractionDigits: 6 })} ${toCurrencySymbol}`, "success");
+            
+            showNotification(
+                `Troca realizada! Você recebeu aprox. ${estimatedReceive.toLocaleString('pt-BR', { maximumFractionDigits: 8 })} ${toCurrencySymbol}`, 
+                "success"
+            );
             
             setAmountToSpend('');
             setEstimatedReceive(0);
-            
-            // Atualiza os dados imediatamente
             await fetchDashboardData(); 
             
         } catch (error: any) {
             console.error("Erro no Trade:", error);
-            
-            // --- TRATAMENTO DE ERRO DETALHADO ---
-            const serverError = error.response?.data;
-            let errorMsg = "Erro ao processar trade.";
-
-            if (serverError) {
-                if (typeof serverError === 'string') errorMsg = serverError;
-                else if (serverError.errors) {
-                    const firstKey = Object.keys(serverError.errors)[0];
-                    errorMsg = `${firstKey}: ${serverError.errors[firstKey][0]}`;
-                }
-                else if (serverError.message) errorMsg = serverError.message;
-            }
-
-            showNotification(errorMsg, "error");
+            const msg = error.response?.data?.message || "Erro ao realizar troca. Tente novamente.";
+            showNotification(msg, "error");
         } finally {
             setIsLoading(false);
         }
     };
 
+    const fromOptions = spendableWallets.map(w => ({
+        value: w.id,
+        label: `${w.currencySymbol} - Saldo: ${Number(w.balance).toLocaleString('pt-BR', { maximumFractionDigits: 4 })}`
+    }));
+
+    const toOptions = currencies
+        .filter(c => c.symbol !== selectedWallet?.currencySymbol)
+        .map(c => ({
+            value: c.symbol,
+            label: c.name
+        }));
+
     return (
         <form onSubmit={handleSubmit} className="relative h-full flex flex-col justify-between">
-            
             <div className="flex items-center justify-between mb-6">
                 <h3 className="font-bold text-white flex items-center gap-2 text-lg">
                     <RefreshCw className="text-yellow-500" size={20} />
-                    Troca Rápida
+                    Swap Rápido
                 </h3>
-                {selectedWallet && toCurrencySymbol && (
-                    <div className="text-[10px] text-gray-400 bg-white/5 px-2 py-1 rounded border border-white/10 flex items-center gap-1">
-                        <span className="text-yellow-500 font-bold">1 {toCurrencySymbol}</span> 
-                        ≈ 
-                        <span>
-                            {(getPrice(toCurrencySymbol) / getPrice(selectedWallet.currencySymbol)).toLocaleString('pt-BR', { maximumFractionDigits: 2 })} {selectedWallet.currencySymbol}
-                        </span>
-                    </div>
-                )}
             </div>
 
             <div className="space-y-4">
-                
-                {/* BLOCO: VENDER */}
+                {/* DE: Carteira de Origem */}
                 <div className="bg-[#0b0f19] border border-white/10 rounded-2xl p-4 relative group hover:border-yellow-500/30 transition-all">
                     <div className="flex justify-between items-center mb-2">
-                        <span className="text-xs font-bold text-gray-500 uppercase">Vender</span>
-                        <div className="flex items-center gap-2 text-xs text-gray-400">
-                            <Wallet size={12} />
-                            <span>Saldo: {selectedWallet ? Number(selectedWallet.balance).toLocaleString('pt-BR', { maximumFractionDigits: 8 }) : '0.00'}</span>
-                            {selectedWallet && (
-                                <button 
-                                    type="button" 
-                                    onClick={handleMaxClick}
-                                    className="text-[10px] font-bold text-black hover:bg-yellow-400 uppercase bg-yellow-500 px-1.5 rounded transition-colors"
-                                >
-                                    MÁX
-                                </button>
-                            )}
-                        </div>
+                        <span className="text-xs font-bold text-gray-500 uppercase">Vender / Pagar</span>
+                        {selectedWallet && (
+                            <button 
+                                type="button" 
+                                onClick={handleMaxClick}
+                                className="text-[10px] font-bold text-black bg-yellow-500 px-2 py-0.5 rounded hover:bg-yellow-400"
+                            >
+                                USAR MÁX
+                            </button>
+                        )}
                     </div>
-
                     <div className="grid grid-cols-5 gap-4 items-end">
                         <div className="col-span-3">
                             <input 
@@ -198,25 +174,24 @@ export const SwapWidget = () => {
                     </div>
                 </div>
 
-                {/* ÍCONE DE TROCA */}
-                <div className="flex justify-center -my-2 relative z-10">
-                    <div className="bg-[#1E293B] p-2 rounded-full border-4 border-[#0f172a] text-yellow-500 shadow-lg hover:rotate-180 transition-transform duration-500 cursor-pointer">
-                        <ArrowDownUp size={20} />
+                {/* Ícone Central */}
+                <div className="flex justify-center -my-3 relative z-10">
+                    <div className="bg-[#1E293B] p-2 rounded-full border-4 border-[#0f172a] text-yellow-500 shadow-lg">
+                        <ArrowDownUp size={18} />
                     </div>
                 </div>
 
-                {/* BLOCO: RECEBER (ESTIMADO) */}
+                {/* PARA: Moeda de Destino */}
                 <div className="bg-[#0b0f19] border border-white/10 rounded-2xl p-4 relative group hover:border-emerald-500/30 transition-all">
-                    <div className="mb-2 flex justify-between">
+                    <div className="mb-2">
                         <span className="text-xs font-bold text-gray-500 uppercase">Receber (Estimado)</span>
                     </div>
-
                     <div className="grid grid-cols-5 gap-4 items-center">
                         <div className="col-span-3">
                             <div className={`text-2xl font-bold font-mono truncate ${estimatedReceive > 0 ? 'text-emerald-400' : 'text-gray-600'}`}>
                                 {estimatedReceive > 0 
-                                    ? estimatedReceive.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 8 }) 
-                                    : '---'}
+                                    ? estimatedReceive.toLocaleString('pt-BR', { maximumFractionDigits: 8 }) 
+                                    : '0.00'}
                             </div>
                         </div>
                         <div className="col-span-2">
@@ -233,13 +208,12 @@ export const SwapWidget = () => {
                         </div>
                     </div>
                 </div>
-
             </div>
 
             <button
                 type="submit"
                 disabled={isLoading || !fromWalletId || !toCurrencySymbol || !amountToSpend || Number(amountToSpend) <= 0}
-                className="w-full mt-6 py-4 rounded-xl bg-yellow-500 hover:bg-yellow-400 text-black font-bold text-lg shadow-[0_0_20px_rgba(240,185,11,0.3)] hover:shadow-[0_0_30px_rgba(240,185,11,0.5)] transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none flex items-center justify-center gap-2"
+                className="w-full mt-6 py-4 rounded-xl bg-yellow-500 hover:bg-yellow-400 text-black font-bold text-lg shadow-lg transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
                 {isLoading ? <CircularProgress size={24} color="inherit" /> : (
                     <>

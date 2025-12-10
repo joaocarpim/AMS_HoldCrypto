@@ -3,9 +3,29 @@
 import { useState, ChangeEvent } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import Image from "next/image"; // <-- 1. Importação adicionada
-import { User, Mail, Phone, MapPin, Lock, Camera, ArrowRight, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
+import Image from "next/image"; 
+import { User, Mail, Phone, MapPin, Lock, Camera, ArrowRight, Loader2, CheckCircle, AlertCircle, ArrowLeft, Eye, EyeOff } from 'lucide-react';
 import { userService } from "@/features/user/services/userService";
+
+// --- CORREÇÃO: InputField MOVIDO PARA FORA DO COMPONENTE ---
+const InputField = ({ icon: Icon, isPassword, showPasswordToggle, onTogglePassword, ...props }: any) => (
+  <div className="relative group">
+    <Icon className="absolute left-4 top-3.5 text-gray-500 group-focus-within:text-yellow-500 transition-colors" size={20} />
+    <input 
+      className="w-full bg-black/40 border border-white/10 rounded-xl py-3 pl-12 pr-4 text-white placeholder-gray-600 focus:outline-none focus:border-yellow-500/50 focus:ring-1 focus:ring-yellow-500/50 transition-all"
+      {...props}
+    />
+    {isPassword && (
+        <button
+            type="button"
+            onClick={onTogglePassword}
+            className="absolute right-4 top-3.5 text-gray-500 hover:text-white transition-colors"
+        >
+            {showPasswordToggle ? <EyeOff size={20} /> : <Eye size={20} />}
+        </button>
+    )}
+  </div>
+);
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -20,6 +40,9 @@ export default function RegisterPage() {
   
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState<{ type: 'success' | 'error' | null, message: string }>({ type: null, message: '' });
+  
+  // Estado para visibilidade da senha
+  const [showPassword, setShowPassword] = useState(false);
 
   const handlePhotoChange = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -51,16 +74,6 @@ export default function RegisterPage() {
     }
   };
 
-  const InputField = ({ icon: Icon, ...props }: any) => (
-    <div className="relative group">
-      <Icon className="absolute left-4 top-3.5 text-gray-500 group-focus-within:text-yellow-500 transition-colors" size={20} />
-      <input 
-        className="w-full bg-black/40 border border-white/10 rounded-xl py-3 pl-12 pr-4 text-white placeholder-gray-600 focus:outline-none focus:border-yellow-500/50 focus:ring-1 focus:ring-yellow-500/50 transition-all"
-        {...props}
-      />
-    </div>
-  );
-
   return (
     <div className="min-h-screen flex items-center justify-center p-4 py-10">
       <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-yellow-500/5 rounded-full blur-[120px] pointer-events-none"></div>
@@ -68,7 +81,11 @@ export default function RegisterPage() {
 
       <div className="glass-panel w-full max-w-2xl p-8 md:p-10 rounded-3xl relative z-10 shadow-2xl border border-white/10">
         
-        <div className="text-center mb-8">
+        <Link href="/" className="absolute top-8 left-8 text-gray-400 hover:text-white transition-colors flex items-center gap-1 text-sm font-medium">
+             <ArrowLeft size={16} /> Voltar
+        </Link>
+
+        <div className="text-center mb-8 mt-4">
           <h1 className="text-3xl font-bold text-white tracking-tight mb-2">Junte-se à <span className="text-yellow-500">HoldCrypto</span></h1>
           <p className="text-gray-400">Crie sua conta e comece a operar no mercado global.</p>
         </div>
@@ -99,7 +116,18 @@ export default function RegisterPage() {
 
           <div className="space-y-1">
             <label className="text-xs font-bold text-gray-500 uppercase tracking-wider ml-1">Senha de Acesso</label>
-            <InputField icon={Lock} name="password" type="password" placeholder="Crie uma senha forte" value={form.password} onChange={handleChange} required />
+            <InputField 
+                icon={Lock} 
+                name="password" 
+                type={showPassword ? "text" : "password"} // Alterna o tipo
+                placeholder="Crie uma senha forte" 
+                value={form.password} 
+                onChange={handleChange} 
+                required 
+                isPassword={true} // Flag para mostrar o olho
+                showPasswordToggle={showPassword}
+                onTogglePassword={() => setShowPassword(!showPassword)}
+            />
           </div>
 
           <div className="space-y-1">
@@ -108,14 +136,13 @@ export default function RegisterPage() {
               <input type="file" accept="image/*" onChange={handlePhotoChange} className="hidden" disabled={loading} />
               {form.photo ? (
                 <>
-                  {/* 2. CORREÇÃO: Div relativa para conter o Image com fill */}
                   <div className="relative w-8 h-8 rounded-full overflow-hidden border border-yellow-500">
                     <Image 
                       src={form.photo} 
                       alt="Preview" 
-                      fill // Preenche o pai (w-8 h-8)
-                      className="object-cover" // Mantém a proporção
-                      unoptimized // Importante para imagens em base64 locais
+                      fill 
+                      className="object-cover" 
+                      unoptimized 
                     />
                   </div>
                   <span className="text-yellow-500 font-medium text-sm">Foto carregada com sucesso</span>

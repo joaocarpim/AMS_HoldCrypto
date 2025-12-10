@@ -4,7 +4,6 @@ import {
     Box, Drawer, List, ListItem, ListItemButton, ListItemIcon, ListItemText, 
     useMediaQuery, IconButton, Avatar
 } from '@mui/material';
-// 1. Adicionado o ícone Wallet
 import { LayoutDashboard, Users, LineChart, Menu as MenuIcon, LogOut, UserCircle, Wallet } from 'lucide-react'; 
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuthUser, useIsAuthenticated, useAuthLoading, useAuthActions } from '@/features/auth/store/useAuthStore';
@@ -14,7 +13,8 @@ const drawerWidth = 260;
 export const AppLayout = ({ children }: { children: React.ReactNode }) => {
     const router = useRouter();
     const pathname = usePathname();
-    const isMobile = useMediaQuery('(max-width:900px)');
+    // Mudamos para 'md' (900px) como ponto de quebra do menu lateral
+    const isMobile = useMediaQuery('(max-width:900px)'); 
     const [mobileOpen, setMobileOpen] = useState(false);
 
     const { fetchProfile, logout } = useAuthActions();
@@ -25,7 +25,6 @@ export const AppLayout = ({ children }: { children: React.ReactNode }) => {
     const navItems = useMemo(() => {
         const items = [
             { text: 'Visão Geral', href: '/dashboard', icon: LayoutDashboard },
-            // 2. Novo item da Carteira adicionado aqui
             { text: 'Carteira', href: '/wallet', icon: Wallet }, 
             { text: 'Mercados', href: '/currency', icon: LineChart },
         ];
@@ -39,26 +38,19 @@ export const AppLayout = ({ children }: { children: React.ReactNode }) => {
         return items;
     }, [user]);
 
-    useEffect(() => {
-        fetchProfile();
-    }, [fetchProfile]);
+    useEffect(() => { fetchProfile(); }, [fetchProfile]);
 
     useEffect(() => {
-        if (!isLoadingAuth && !isAuthenticated) {
-            router.push('/login');
-        }
+        if (!isLoadingAuth && !isAuthenticated) router.push('/login');
     }, [isLoadingAuth, isAuthenticated, router]);
 
-    const handleDrawerToggle = () => {
-        setMobileOpen(!mobileOpen);
-    };
+    const handleDrawerToggle = () => setMobileOpen(!mobileOpen);
 
     if (isLoadingAuth) {
         return (
             <div className="flex h-screen w-full items-center justify-center bg-[#020617]">
                 <div className="flex flex-col items-center gap-4">
                     <div className="h-10 w-10 animate-spin rounded-full border-4 border-yellow-500 border-t-transparent"></div>
-                    <span className="text-yellow-500 font-mono text-sm">CARREGANDO SISTEMA...</span>
                 </div>
             </div>
         );
@@ -93,7 +85,7 @@ export const AppLayout = ({ children }: { children: React.ReactNode }) => {
                                     }}
                                 >
                                     <ListItemIcon sx={{ minWidth: 40, color: 'inherit' }}><item.icon size={20} /></ListItemIcon>
-                                    <ListItemText primary={item.text} primaryTypographyProps={{ fontSize: '0.9rem', fontWeight: isActive ? 600 : 500, fontFamily: 'inherit' }} />
+                                    <ListItemText primary={item.text} primaryTypographyProps={{ fontSize: '0.9rem', fontWeight: isActive ? 600 : 500 }} />
                                     {isActive && <div className="h-2 w-2 rounded-full bg-yellow-500 shadow-[0_0_10px_#F0B90B]"></div>}
                                 </ListItemButton>
                             </ListItem>
@@ -103,14 +95,19 @@ export const AppLayout = ({ children }: { children: React.ReactNode }) => {
             </div>
             <div className="p-4 border-t border-white/5 bg-black/20">
                 <div className="flex items-center gap-3 mb-4 p-3 rounded-xl bg-white/5 border border-white/5 cursor-pointer hover:bg-white/10 transition-colors" onClick={() => router.push('/profile')}>
-                    <Avatar src={user?.photo || undefined} sx={{ bgcolor: '#F0B90B', color: '#000', width: 36, height: 36, fontWeight: 'bold' }}>{user?.name?.charAt(0) || 'U'}</Avatar>
-                    <div className="overflow-hidden">
-                        <p className="text-sm font-bold text-white truncate">{user?.name}</p>
-                        <div className="flex items-center gap-2"><span className="text-[10px] uppercase tracking-wider text-gray-500">{user?.role === 'admin' ? 'Administrador' : 'Usuário'}</span></div>
+                {/* CORREÇÃO: Adicionado || undefined para evitar erro de tipo null */}
+                    <Avatar 
+                        src={user?.photo || undefined} 
+                        sx={{ bgcolor: '#F0B90B', color: '#000', width: 36, height: 36, fontWeight: 'bold' }}
+                    >
+                        {user?.name?.charAt(0) || 'U'}
+                    </Avatar>                    <div className="overflow-hidden">
+                        <p className="text-sm font-bold text-white truncate max-w-[120px]">{user?.name}</p>
+                        <span className="text-[10px] uppercase tracking-wider text-gray-500">{user?.role === 'admin' ? 'Admin' : 'Trader'}</span>
                     </div>
                 </div>
-                <button onClick={() => logout()} className="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-all border border-transparent hover:border-red-500/20">
-                    <LogOut size={16} /> Encerrar Sessão
+                <button onClick={() => logout()} className="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider text-red-400 hover:bg-red-500/10 transition-all border border-transparent hover:border-red-500/20">
+                    <LogOut size={16} /> Sair
                 </button>
             </div>
         </div>
@@ -128,7 +125,18 @@ export const AppLayout = ({ children }: { children: React.ReactNode }) => {
                 <Drawer variant="temporary" open={mobileOpen} onClose={handleDrawerToggle} ModalProps={{ keepMounted: true }} sx={{ display: { xs: 'block', md: 'none' }, '& .MuiDrawer-paper': { boxSizing: 'border-box', width: drawerWidth, bgcolor: 'transparent', border: 'none' } }}>{drawerContent}</Drawer>
                 <Drawer variant="permanent" sx={{ display: { xs: 'none', md: 'block' }, '& .MuiDrawer-paper': { boxSizing: 'border-box', width: drawerWidth, bgcolor: 'transparent', border: 'none' } }} open>{drawerContent}</Drawer>
             </Box>
-            <Box component="main" sx={{ flexGrow: 1, p: { xs: 2, md: 4 }, width: { md: `calc(100% - ${drawerWidth}px)` }, mt: { xs: 8, md: 0 }, overflowX: 'hidden' }}>{children}</Box>
+            
+            {/* CORREÇÃO DE RESPONSIVIDADE AQUI: overflowX hidden e max-width */}
+            <Box component="main" sx={{ 
+                flexGrow: 1, 
+                p: { xs: 2, md: 4 }, 
+                width: { md: `calc(100% - ${drawerWidth}px)`, xs: '100%' }, 
+                mt: { xs: 8, md: 0 }, 
+                maxWidth: '100vw',
+                overflowX: 'hidden'
+            }}>
+                {children}
+            </Box>
         </Box>
     );
 };

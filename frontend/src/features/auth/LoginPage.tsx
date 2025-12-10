@@ -2,16 +2,17 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { useAuthActions, useAuthError, useIsAuthenticated } from './store/useAuthStore'; // Removi useAuthLoading
-import { Mail, Lock, ArrowRight, Loader2, AlertCircle } from 'lucide-react';
+import { useAuthActions, useAuthError, useIsAuthenticated } from './store/useAuthStore'; 
+import { Mail, Lock, ArrowRight, Loader2, AlertCircle, ArrowLeft, Eye, EyeOff } from 'lucide-react'; // <-- Importe Eye e EyeOff
 
 export default function LoginPage() {
     const router = useRouter();
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
-    
-    // CORREÇÃO 1: Criamos um estado de carregamento LOCAL
     const [isSubmitting, setIsSubmitting] = useState(false);
+    
+    // NOVO: Estado para mostrar/ocultar senha
+    const [showPassword, setShowPassword] = useState(false);
 
     const { login } = useAuthActions();
     const authError = useAuthError();
@@ -25,32 +26,30 @@ export default function LoginPage() {
 
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
-        
-        // CORREÇÃO 2: Ativamos o loading local
         setIsSubmitting(true);
-
         try {
             const success = await login(email, password);
             if (success) {
                 router.push("/dashboard");
             }
-            // Se falhar, o store já define o erro, não precisamos fazer nada aqui
         } catch (error) {
             console.error("Erro no login", error);
         } finally {
-            // CORREÇÃO 3: Desativamos o loading SEMPRE (sucesso ou erro)
             setIsSubmitting(false);
         }
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center p-4 bg-[#020617]"> {/* Adicionei bg escuro caso falte no global */}
-            {/* Background Glow */}
+        <div className="min-h-screen flex items-center justify-center p-4 bg-[#020617]"> 
             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-yellow-500/10 rounded-full blur-[100px] pointer-events-none"></div>
 
-            <div className="w-full max-w-md p-8 rounded-3xl relative z-10 shadow-2xl border border-white/10 bg-[#0f172a]/50 backdrop-blur-xl"> {/* Ajustei classes do glass panel */}
-                {/* Header do Card */}
-                <div className="text-center mb-8">
+            <div className="w-full max-w-md p-8 rounded-3xl relative z-10 shadow-2xl border border-white/10 bg-[#0f172a]/50 backdrop-blur-xl"> 
+                
+                <Link href="/" className="absolute top-6 left-6 text-gray-400 hover:text-white transition-colors flex items-center gap-1 text-sm font-medium">
+                    <ArrowLeft size={16} /> Voltar
+                </Link>
+
+                <div className="text-center mb-8 mt-6"> 
                     <div className="inline-flex h-12 w-12 items-center justify-center rounded-xl bg-yellow-500 text-black font-bold text-3xl mb-4 shadow-lg shadow-yellow-500/30">
                         H
                     </div>
@@ -59,7 +58,7 @@ export default function LoginPage() {
                 </div>
 
                 <form onSubmit={handleLogin} className="space-y-5">
-                    {/* Campo Email */}
+                    
                     <div className="space-y-1">
                         <label className="text-xs font-bold text-gray-400 uppercase tracking-wider ml-1">Email</label>
                         <div className="relative group">
@@ -75,23 +74,29 @@ export default function LoginPage() {
                         </div>
                     </div>
 
-                    {/* Campo Senha */}
                     <div className="space-y-1">
                         <label className="text-xs font-bold text-gray-400 uppercase tracking-wider ml-1">Senha</label>
                         <div className="relative group">
                             <Lock className="absolute left-4 top-3.5 text-gray-500 group-focus-within:text-yellow-500 transition-colors" size={20} />
                             <input 
-                                type="password" 
+                                type={showPassword ? "text" : "password"} // Alterna o tipo
                                 value={password}
                                 onChange={e => setPassword(e.target.value)}
                                 required
-                                className="w-full bg-black/40 border border-white/10 rounded-xl py-3 pl-12 pr-4 text-white placeholder-gray-600 focus:outline-none focus:border-yellow-500/50 focus:ring-1 focus:ring-yellow-500/50 transition-all"
+                                className="w-full bg-black/40 border border-white/10 rounded-xl py-3 pl-12 pr-12 text-white placeholder-gray-600 focus:outline-none focus:border-yellow-500/50 focus:ring-1 focus:ring-yellow-500/50 transition-all"
                                 placeholder="••••••••"
                             />
+                            {/* Botão do Olho */}
+                            <button
+                                type="button"
+                                onClick={() => setShowPassword(!showPassword)}
+                                className="absolute right-4 top-3.5 text-gray-500 hover:text-white transition-colors"
+                            >
+                                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                            </button>
                         </div>
                     </div>
 
-                    {/* Mensagem de Erro */}
                     {authError && (
                         <div className="flex items-center gap-2 p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400 text-sm">
                             <AlertCircle size={16} />
@@ -99,10 +104,8 @@ export default function LoginPage() {
                         </div>
                     )}
 
-                    {/* Botão de Login */}
                     <button
                         type="submit"
-                        // CORREÇÃO 4: Usamos isSubmitting aqui
                         disabled={isSubmitting} 
                         className="w-full bg-yellow-500 hover:bg-yellow-400 text-black font-bold py-3.5 rounded-xl transition-all shadow-[0_0_20px_rgba(240,185,11,0.3)] hover:shadow-[0_0_30px_rgba(240,185,11,0.5)] active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                     >
@@ -114,7 +117,6 @@ export default function LoginPage() {
                     </button>
                 </form>
 
-                {/* Footer do Card */}
                 <div className="mt-8 text-center border-t border-white/5 pt-6">
                     <p className="text-gray-400 text-sm">
                         Não tem uma conta?{' '}
