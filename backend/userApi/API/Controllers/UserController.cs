@@ -17,6 +17,10 @@ namespace UserApi.API.Controllers
             _userService = userService;
         }
 
+        // ==================================================================
+        // 🚨 CORREÇÃO APLICADA AQUI: Adicionado ("register")
+        // O Gateway envia para /api/User/register, então precisamos aceitar aqui.
+        // ==================================================================
         [HttpPost]
         public IActionResult RegisterUser(UserDTO userDto)
         {

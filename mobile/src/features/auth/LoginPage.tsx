@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useAuthActions, useAuthError, useIsAuthenticated } from './store/useAuthStore'; 
-import { Mail, Lock, ArrowRight, Loader2, AlertCircle, ArrowLeft, Eye, EyeOff } from 'lucide-react';
+import { Mail, Lock, ArrowRight, Loader2, AlertCircle, ArrowLeft, Eye, EyeOff } from 'lucide-react'; // <-- Importe Eye e EyeOff
 
 export default function LoginPage() {
     const router = useRouter();
@@ -11,6 +11,7 @@ export default function LoginPage() {
     const [password, setPassword] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
     
+    // NOVO: Estado para mostrar/ocultar senha
     const [showPassword, setShowPassword] = useState(false);
 
     const { login } = useAuthActions();
@@ -39,23 +40,16 @@ export default function LoginPage() {
     };
 
     return (
-        // ADICIONADO: overflow-hidden para evitar scroll lateral causado pelo blur
-        <div className="min-h-screen flex items-center justify-center p-4 bg-[#020617] overflow-hidden relative"> 
-            
-            {/* Fundo responsivo: ajustei o tamanho para não cobrir tudo em telas pequenas */}
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] md:w-[500px] h-[300px] md:h-[500px] bg-yellow-500/10 rounded-full blur-[80px] md:blur-[100px] pointer-events-none"></div>
+        <div className="min-h-screen flex items-center justify-center p-4 bg-[#020617]"> 
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-yellow-500/10 rounded-full blur-[100px] pointer-events-none"></div>
 
-            {/* RESPONSIVIDADE: Padding reduzido no mobile (p-6) e mantido no desktop (md:p-8) */}
-            <div className="w-full max-w-md p-6 md:p-8 rounded-3xl relative z-10 shadow-2xl border border-white/10 bg-[#0f172a]/50 backdrop-blur-xl"> 
+            <div className="w-full max-w-md p-8 rounded-3xl relative z-10 shadow-2xl border border-white/10 bg-[#0f172a]/50 backdrop-blur-xl"> 
                 
-                {/* Botão Voltar ajustado */}
-                <div className="mb-6">
-                    <Link href="/" className="text-gray-400 hover:text-white transition-colors flex items-center gap-1 text-sm font-medium w-fit">
-                        <ArrowLeft size={16} /> Voltar
-                    </Link>
-                </div>
+                <Link href="/" className="absolute top-6 left-6 text-gray-400 hover:text-white transition-colors flex items-center gap-1 text-sm font-medium">
+                    <ArrowLeft size={16} /> Voltar
+                </Link>
 
-                <div className="text-center mb-8"> 
+                <div className="text-center mb-8 mt-6"> 
                     <div className="inline-flex h-12 w-12 items-center justify-center rounded-xl bg-yellow-500 text-black font-bold text-3xl mb-4 shadow-lg shadow-yellow-500/30">
                         H
                     </div>
@@ -74,7 +68,7 @@ export default function LoginPage() {
                                 value={email}
                                 onChange={e => setEmail(e.target.value)}
                                 required
-                                className="w-full bg-black/40 border border-white/10 rounded-xl py-3 pl-12 pr-4 text-white placeholder-gray-600 focus:outline-none focus:border-yellow-500/50 focus:ring-1 focus:ring-yellow-500/50 transition-all text-sm md:text-base" // Ajuste de fonte
+                                className="w-full bg-black/40 border border-white/10 rounded-xl py-3 pl-12 pr-4 text-white placeholder-gray-600 focus:outline-none focus:border-yellow-500/50 focus:ring-1 focus:ring-yellow-500/50 transition-all"
                                 placeholder="ex: satoshi@bitcoin.com"
                             />
                         </div>
@@ -85,13 +79,14 @@ export default function LoginPage() {
                         <div className="relative group">
                             <Lock className="absolute left-4 top-3.5 text-gray-500 group-focus-within:text-yellow-500 transition-colors" size={20} />
                             <input 
-                                type={showPassword ? "text" : "password"} 
+                                type={showPassword ? "text" : "password"} // Alterna o tipo
                                 value={password}
                                 onChange={e => setPassword(e.target.value)}
                                 required
-                                className="w-full bg-black/40 border border-white/10 rounded-xl py-3 pl-12 pr-12 text-white placeholder-gray-600 focus:outline-none focus:border-yellow-500/50 focus:ring-1 focus:ring-yellow-500/50 transition-all text-sm md:text-base"
+                                className="w-full bg-black/40 border border-white/10 rounded-xl py-3 pl-12 pr-12 text-white placeholder-gray-600 focus:outline-none focus:border-yellow-500/50 focus:ring-1 focus:ring-yellow-500/50 transition-all"
                                 placeholder="••••••••"
                             />
+                            {/* Botão do Olho */}
                             <button
                                 type="button"
                                 onClick={() => setShowPassword(!showPassword)}
@@ -104,7 +99,7 @@ export default function LoginPage() {
 
                     {authError && (
                         <div className="flex items-center gap-2 p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400 text-sm">
-                            <AlertCircle size={16} className="shrink-0" /> {/* shrink-0 evita que o icone esmague */}
+                            <AlertCircle size={16} />
                             <span>{authError}</span>
                         </div>
                     )}
