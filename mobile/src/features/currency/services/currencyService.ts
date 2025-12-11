@@ -1,32 +1,32 @@
-import apiClient from "@/shared/api/apiClient";
-import { currencyAPI } from "@/shared/api/api";
-import { Currency } from "../types/Currency";
+// mobile/src/features/currency/services/currencyService.ts
+
+import api from '../../../services/api';
+
+export interface History {
+    id: number;
+    price: number;
+    datetime: string;
+}
+
+export interface Currency {
+    id: number;
+    symbol: string;
+    name: string;
+    histories?: History[];
+}
 
 const currencyService = {
-  getAll: async (): Promise<Currency[]> => {
-    const response = await apiClient.get(currencyAPI.getAll());
-    return response.data;
-  },
-
-  getById: async (id: number): Promise<Currency> => {
-    const response = await apiClient.get(currencyAPI.getById(id));
-    return response.data;
-  },
-
-  create: async (currency: Omit<Currency, "id" | "histories">): Promise<Currency> => {
-    const response = await apiClient.post(currencyAPI.create(), currency);
-    return response.data;
-  },
-
-  update: async (id: number, currency: Partial<Currency>): Promise<Currency> => {
-    const response = await apiClient.put(currencyAPI.update(id), currency);
-    return response.data;
-  },
-
-  delete: async (id: number): Promise<void> => {
-    await apiClient.delete(currencyAPI.delete(id));
-  },
+    getAll: async (): Promise<Currency[]> => {
+        // CORREÇÃO: Vamos direto para a rota base '/currency'
+        // A rota '/currency/history' estava sendo confundida com '/currency/{id}' pelo backend
+        try {
+            const response = await api.get('/currency');
+            return response.data;
+        } catch (error) {
+            console.error("Erro ao buscar moedas:", error);
+            throw error;
+        }
+    },
 };
 
 export default currencyService;
-

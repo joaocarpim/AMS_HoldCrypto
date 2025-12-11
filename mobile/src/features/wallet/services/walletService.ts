@@ -1,104 +1,81 @@
-import apiClient from '@/shared/api/apiClient';
-import { walletAPI } from '@/shared/api/api';
+// mobile/src/features/wallet/services/WalletService.ts
 
-// --- Interfaces ---
+import api from '../../../services/api';
 
 export type WalletCategory = "Overview" | "Spot" | "Funding";
 
 export interface Wallet {
-  id: number;
-  userId: number;
-  name: string;
-  category: WalletCategory;
-  currencySymbol: string;
-  balance: number;
-  createdAt: string;
+    id: number;
+    userId: number;
+    name: string;
+    category: WalletCategory;
+    currencySymbol: string;
+    balance: number;
 }
 
 export interface WalletTransaction {
-  id: number;
-  createdAt: string;
-  type: number; // 0: Deposit, 1: Withdraw, 2: Transfer
-  amount: number;
-  walletId: number;
-  currencySymbol: string;
-  notes: string;
+    id: number;
+    walletId: number;
+    amount: number;
+    type: number;
+    currencySymbol: string;
+    notes?: string;
+    createdAt: string;
 }
 
-export interface CreateWalletDTO {
-  userId: number;
-  name: string;
-  category: WalletCategory;
-  currencySymbol: string;
-  balance: number;
-}
-
-export interface DepositWithdrawDTO {
-  amount: number;
-}
-
-export interface TransferDTO {
-  fromWalletId: number;
-  toWalletId: number;
-  amount: number;
-}
-
-export interface TradeRequestDTO {
-  userId: number;
-  fromWalletId: number;
-  toCurrencySymbol: string;
-  amountToSpend: number;
-}
-
-export interface TradeResponseDTO {
-  status: string;
-  newBalances: Record<string, number>;
-}
-
-// --- Serviço ---
 const walletService = {
-  getUserWallets: async (userId: number): Promise<Wallet[]> => {
-    if (!userId || userId <= 0) throw new Error("ID de usuário inválido.");
-    const response = await apiClient.get<Wallet[]>(walletAPI.getUserWallets(userId));
-    return response.data;
-  },
+    // BUSCAR TODAS
+    getUserWallets: async (userId: number): Promise<Wallet[]> => {
+        try {
+            // CORREÇÃO: Passando userId na Query String
+            // O Backend deve estar esperando algo como: GET /api/Wallet?userId=1
+            const response = await api.get('/wallet', {
+                params: { userId: userId }
+            });
+            
+            console.log("💰 DADOS CARTEIRA:", response.data);
 
-  createWallet: async (walletData: any): Promise<Wallet> => {
-    const response = await apiClient.post<Wallet>(walletAPI.createWallet(), walletData);
-    return response.data;
-  },
+            return response.data.map((w: any) => ({
+                id: w.id || w.Id,
+                userId: w.userId || w.UserId,
+                name: w.name || w.Name || 'Carteira',
+                category: w.category || w.Category || 'Spot',
+                currencySymbol: w.currencySymbol || w.CurrencySymbol || w.currency?.symbol || '???',
+                // Tratamento blindado para o saldo
+                balance: Number(w.balance !== undefined ? w.balance : w.Balance),
+            }));
+        } catch (error) {
+            console.error("Erro ao buscar carteiras:", error);
+            throw error;
+        }
+    },
 
-  // --- NOVA FUNÇÃO PARA DELETAR CARTEIRA ---
-  deleteWallet: async (walletId: number): Promise<void> => {
-    // Assume que a rota é DELETE /wallet/{id}
-    await apiClient.delete(`/wallet/${walletId}`);
-  },
-  // -----------------------------------------
+    // HISTÓRICO
+    getHistory: async (userId: number): Promise<WalletTransaction[]> => {
+        // Também passamos o userId aqui para garantir
+        const response = await api.get('/wallet/history', {
+            params: { userId: userId }
+        });
+        return response.data;
+    },
 
-  deposit: async (walletId: number, data: DepositWithdrawDTO): Promise<{ balance: number }> => {
-    const response = await apiClient.post<{ balance: number }>(walletAPI.deposit(walletId), data);
-    return response.data;
-  },
+    // CRIAR
+    createWallet: async (data: { userId: number; name: string; currencySymbol: string; category: number }) => {
+        const response = await api.post('/wallet', data);
+        return response.data;
+    },
 
-  withdraw: async (walletId: number, data: DepositWithdrawDTO): Promise<{ balance: number }> => {
-    const response = await apiClient.post<{ balance: number }>(walletAPI.withdraw(walletId), data);
-    return response.data;
-  },
+    // DEPOSITAR
+    deposit: async (walletId: number, amount: number) => {
+        const response = await api.post(`/wallet/${walletId}/deposit`, { amount });
+        return response.data;
+    },
 
-  transfer: async (data: TransferDTO): Promise<{ fromBalance: number, toBalance: number }> => {
-    const response = await apiClient.post<{ fromBalance: number, toBalance: number }>(walletAPI.transfer(), data);
-    return response.data;
-  },
-
-  trade: async (data: TradeRequestDTO): Promise<TradeResponseDTO> => {
-    const response = await apiClient.post<TradeResponseDTO>(walletAPI.trade(), data);
-    return response.data;
-  },
-
-  getHistory: async (userId: number): Promise<WalletTransaction[]> => {
-    const response = await apiClient.get<WalletTransaction[]>(`/wallet/history?userId=${userId}`);
-    return response.data;
-  },
+    // SACAR
+    withdraw: async (walletId: number, amount: number) => {
+        const response = await api.post(`/wallet/${walletId}/withdraw`, { amount });
+        return response.data;
+    }
 };
 
 export default walletService;

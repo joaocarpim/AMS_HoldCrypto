@@ -1,150 +1,216 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, ActivityIndicator, Alert, StyleSheet, ScrollView, KeyboardAvoidingView, Platform, TextInputProps } from 'react-native';
-import { useRouter } from 'expo-router';
-import { User, Mail, Phone, MapPin, Lock, ArrowLeft } from 'lucide-react-native';
-// Removemos importações desnecessárias que geravam warnings:
-// import { useAuthActions, useIsAuthenticated } from '../src/features/auth/store/useAuthStore'; 
+// mobile/app/(auth)/register.tsx
 
-// Importação do service (quando existir)
-// import { userService } from '../src/features/user/services/userService'; 
+import React, { useState } from 'react';
+import { 
+  View, 
+  Text, 
+  TextInput, 
+  TouchableOpacity, 
+  ActivityIndicator, 
+  Alert, 
+  StyleSheet, 
+  KeyboardAvoidingView, 
+  Platform, 
+  ScrollView 
+} from 'react-native';
+import { useRouter } from 'expo-router';
+// REMOVIDO: CheckCircle da lista de imports
+import { User, Mail, Phone, MapPin, Lock, ArrowLeft, Eye, EyeOff } from 'lucide-react-native';
+
+import authService from '../../src/features/auth/services/AuthServices';
 
 export default function RegisterScreen() {
-  const router = useRouter();
-  const [form, setForm] = useState({ name: '', email: '', phone: '', address: '', password: '' });
-  const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter();
+  
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
+  const [address, setAddress] = useState('');
+  const [password, setPassword] = useState('');
+  
+  const [showPassword, setShowPassword] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleChange = (key: string, value: string) => {
-    setForm(prev => ({ ...prev, [key]: value }));
-  };
+  const handleRegister = async () => {
+    if (!name || !email || !password) {
+      return Alert.alert("Atenção", "Nome, Email e Senha são obrigatórios.");
+    }
 
-  const handleRegister = async () => {
-    if (!form.name || !form.email || !form.password) return Alert.alert("Erro", "Campos obrigatórios faltando.");
+    setIsSubmitting(true);
 
-    setIsLoading(true);
-    try {
-      // await userService.create(form); 
-      
-      // Simulação para o MVP
-      setTimeout(() => {
-          Alert.alert("Sucesso", "Conta criada! Faça login.");
-          router.back();
-      }, 1500);
+    try {
+      // Montagem dos dados exatamente como o C# espera
+      const userData = {
+        name: name,
+        email: email,
+        password: password,
+        phone: phone,
+        address: address,
+        role: "Client"
+      };
 
-    } catch (error) {
-      console.error("Erro ao registrar:", error);
-      Alert.alert("Erro", "Não foi possível criar a conta.");
-    } finally {
-      setIsLoading(false);
-    }
-  };
+      console.log("Enviando dados:", userData);
 
-  return (
-    <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scrollContent}>
-        
-        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-           <ArrowLeft size={24} color="#9ca3af" />
-           <Text style={styles.backText}>Voltar</Text>
-        </TouchableOpacity>
+      await authService.register(userData);
 
-        <View style={styles.header}>
-          <Text style={styles.title}>Crie sua conta</Text>
-          <Text style={styles.subtitle}>Comece a operar no mercado global</Text>
-        </View>
+      Alert.alert(
+        "Conta Criada!", 
+        "Sua conta foi criada com sucesso. Faça login para continuar.",
+        [
+          { text: "Ir para Login", onPress: () => router.back() }
+        ]
+      );
 
-        <View style={styles.form}>
-            <InputItem 
-                icon={User} 
-                label="NOME COMPLETO" 
-                placeholder="Ex: Ana Silva" 
-                value={form.name} 
-                onChangeText={(v) => handleChange('name', v)} 
-            />
-            
-            <InputItem 
-                icon={Mail} 
-                label="EMAIL" 
-                placeholder="Ex: ana@crypto.com" 
-                value={form.email} 
-                onChangeText={(v) => handleChange('email', v)} 
-                keyboardType="email-address" 
-            />
+    } catch (error: any) {
+      console.error("Erro no registro:", error);
+      const msg = error.response?.data?.message || "Não foi possível criar a conta. Verifique os dados.";
+      Alert.alert("Erro", msg);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
-            <InputItem 
-                icon={Phone} 
-                label="TELEFONE" 
-                placeholder="(00) 00000-0000" 
-                value={form.phone} 
-                onChangeText={(v) => handleChange('phone', v)} 
-                keyboardType="phone-pad" 
-            />
+  return (
+    <KeyboardAvoidingView 
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      style={styles.container}
+    >
+      <ScrollView contentContainerStyle={styles.scrollContent}>
+        
+        <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
+          <ArrowLeft size={24} color="white" />
+          <Text style={styles.backText}>Voltar</Text>
+        </TouchableOpacity>
 
-            <InputItem 
-                icon={MapPin} 
-                label="CIDADE/ESTADO" 
-                placeholder="Ex: São Paulo, SP" 
-                value={form.address} 
-                onChangeText={(v) => handleChange('address', v)} 
-            />
+        <View style={styles.header}>
+          <Text style={styles.title}>Crie sua conta</Text>
+          <Text style={styles.subtitle}>Comece a operar no mercado global</Text>
+        </View>
 
-            <InputItem 
-                icon={Lock} 
-                label="SENHA" 
-                placeholder="Crie uma senha forte" 
-                value={form.password} 
-                onChangeText={(v) => handleChange('password', v)} 
-                secureTextEntry 
-            />
+        <View style={styles.form}>
+          
+          <View style={styles.inputGroup}>
+              <Text style={styles.label}>NOME COMPLETO</Text>
+              <View style={styles.inputContainer}>
+                  <User size={20} color="#6b7280" />
+                  <TextInput 
+                    style={styles.input}
+                    placeholder="Ex: Ana Silva"
+                    placeholderTextColor="#4b5563"
+                    value={name}
+                    onChangeText={setName}
+                  />
+              </View>
+          </View>
 
-            <TouchableOpacity onPress={handleRegister} disabled={isLoading} style={styles.button}>
-                {isLoading ? <ActivityIndicator color="black" /> : <Text style={styles.buttonText}>Começar Agora</Text>}
-            </TouchableOpacity>
-        </View>
+          <View style={styles.inputGroup}>
+              <Text style={styles.label}>EMAIL</Text>
+              <View style={styles.inputContainer}>
+                  <Mail size={20} color="#6b7280" />
+                  <TextInput 
+                    style={styles.input}
+                    placeholder="Ex: ana@crypto.com"
+                    placeholderTextColor="#4b5563"
+                    value={email}
+                    onChangeText={setEmail}
+                    autoCapitalize="none"
+                    keyboardType="email-address"
+                  />
+              </View>
+          </View>
 
-      </ScrollView>
-    </KeyboardAvoidingView>
-  );
+          <View style={styles.inputGroup}>
+              <Text style={styles.label}>TELEFONE</Text>
+              <View style={styles.inputContainer}>
+                  <Phone size={20} color="#6b7280" />
+                  <TextInput 
+                    style={styles.input}
+                    placeholder="(00) 00000-0000"
+                    placeholderTextColor="#4b5563"
+                    value={phone}
+                    onChangeText={setPhone}
+                    keyboardType="phone-pad"
+                  />
+              </View>
+          </View>
+
+          <View style={styles.inputGroup}>
+              <Text style={styles.label}>CIDADE/ESTADO</Text>
+              <View style={styles.inputContainer}>
+                  <MapPin size={20} color="#6b7280" />
+                  <TextInput 
+                    style={styles.input}
+                    placeholder="Ex: São Paulo, SP"
+                    placeholderTextColor="#4b5563"
+                    value={address}
+                    onChangeText={setAddress}
+                  />
+              </View>
+          </View>
+
+          <View style={styles.inputGroup}>
+              <Text style={styles.label}>SENHA</Text>
+              <View style={styles.inputContainer}>
+                  <Lock size={20} color="#6b7280" />
+                  <TextInput 
+                    style={styles.input}
+                    placeholder="Crie uma senha forte"
+                    placeholderTextColor="#4b5563"
+                    value={password}
+                    onChangeText={setPassword}
+                    secureTextEntry={!showPassword}
+                  />
+                  <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
+                    {showPassword ? <EyeOff size={20} color="#6b7280" /> : <Eye size={20} color="#6b7280" />}
+                  </TouchableOpacity>
+              </View>
+          </View>
+
+          <TouchableOpacity 
+            onPress={handleRegister}
+            disabled={isSubmitting}
+            style={styles.button}
+          >
+            {isSubmitting ? (
+              <ActivityIndicator color="black" />
+            ) : (
+              <View style={styles.buttonContent}>
+                <Text style={styles.buttonText}>Começar Agora</Text>
+              </View>
+            )}
+          </TouchableOpacity>
+
+        </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
+  );
 }
-
-// CORREÇÃO: Interface e Componente
-interface InputItemProps extends TextInputProps {
-    icon: any;
-    label: string;
-}
-
-const InputItem = ({ icon: Icon, label, ...props }: InputItemProps) => (
-    <View style={styles.inputGroup}>
-        <Text style={styles.label}>{label}</Text>
-        <View style={styles.inputContainer}>
-            <Icon size={20} color="#6b7280" />
-            <TextInput 
-                style={styles.input} 
-                placeholderTextColor="#4b5563" 
-                {...props} // Passa value, onChangeText e outros props nativos
-            />
-        </View>
-    </View>
-);
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#020617' },
-  scrollContent: { flexGrow: 1, padding: 24, paddingBottom: 50 },
-  backButton: { flexDirection: 'row', alignItems: 'center', marginBottom: 20 },
-  backText: { color: '#9ca3af', marginLeft: 8, fontSize: 16 },
-  header: { marginBottom: 32 },
-  title: { color: 'white', fontSize: 28, fontWeight: 'bold' },
-  subtitle: { color: '#9ca3af', fontSize: 14, marginTop: 4 },
-  form: { gap: 16 },
-  inputGroup: { gap: 8 },
-  label: { color: '#525252', fontSize: 11, fontWeight: 'bold', letterSpacing: 1 },
-  inputContainer: {
-    flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.05)',
-    borderRadius: 12, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', paddingHorizontal: 16, height: 56
-  },
-  input: { flex: 1, color: 'white', marginLeft: 12, fontSize: 16 },
-  button: {
-    backgroundColor: '#F0B90B', height: 56, borderRadius: 12, 
-    alignItems: 'center', justifyContent: 'center', marginTop: 16
-  },
-  buttonText: { color: 'black', fontWeight: 'bold', fontSize: 16 },
+  container: { flex: 1, backgroundColor: '#020617' },
+  scrollContent: { flexGrow: 1, padding: 24, paddingBottom: 50 },
+  
+  backButton: { flexDirection: 'row', alignItems: 'center', marginBottom: 20, marginTop: 10 },
+  backText: { color: 'white', marginLeft: 8, fontSize: 16, fontWeight: '500' },
+
+  header: { marginBottom: 30 },
+  title: { color: 'white', fontSize: 28, fontWeight: 'bold', marginBottom: 8 },
+  subtitle: { color: '#9ca3af', fontSize: 14 },
+
+  form: { gap: 20 },
+  inputGroup: { gap: 8 },
+  label: { color: '#9ca3af', fontSize: 12, fontWeight: 'bold', letterSpacing: 1 },
+  
+  inputContainer: {
+    flexDirection: 'row', alignItems: 'center', backgroundColor: 'rgba(255,255,255,0.05)',
+    borderRadius: 12, borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', paddingHorizontal: 16, height: 56
+  },
+  input: { flex: 1, color: 'white', marginLeft: 12, fontSize: 16 },
+  
+  button: {
+    backgroundColor: '#F0B90B', height: 56, borderRadius: 12, 
+    alignItems: 'center', justifyContent: 'center', marginTop: 10
+  },
+  buttonContent: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  buttonText: { color: 'black', fontWeight: 'bold', fontSize: 16 },
 });

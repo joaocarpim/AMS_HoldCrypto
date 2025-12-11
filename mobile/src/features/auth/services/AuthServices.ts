@@ -1,34 +1,27 @@
-import { api } from '../../../services/api';
+// mobile/src/features/auth/services/AuthServices.ts
 
-// Interface para a resposta do login
-interface LoginResponse {
-  token: string;
-  expiration?: string; 
-}
-
-// Interface para o perfil do usuário
-export interface UserProfile {
-  id: number;
-  user: string;
-  name?: string;
-  email: string;
-  role: string;      
-  photo?: string;     
-  phone?: string;     
-  address?: string;   
-}
+import api from '../../../services/api'; 
 
 const authService = {
-  login: async (email: string, password: string): Promise<LoginResponse> => {
-    // Endpoints do seu Gateway
-    const response = await api.post('/api/auth/login', { email, password });
-    return response.data; 
-  },
+    // Adicionamos a tipagem ': string' para o TypeScript parar de reclamar
+    login: async (email: string, password: string) => {
+        const response = await api.post('/auth/login', { email, password });
+        return response.data;
+    },
 
-  getProfile: async (): Promise<UserProfile> => {
-    const response = await api.get<UserProfile>('/api/auth/profile');
-    return response.data;
-  },
+    getProfile: async () => {
+        const response = await api.get('/auth/profile');
+        return response.data;
+    },
+    
+    // Tipagem 'any' no userData (você pode criar uma interface depois se quiser)
+    register: async (userData: any) => {
+        // CORREÇÃO DA ROTA:
+        // Como você deixou o caminho "puro" no Backend e Ocelot (/api/User),
+        // o mobile deve chamar '/user', e não '/user/register'.
+        const response = await api.post('/user', userData);
+        return response.data;
+    }
 };
 
 export default authService;

@@ -1,50 +1,87 @@
-# Welcome to your Expo app 👋
+# 📱 Módulo Mobile (React Native + Expo)
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+**Propósito:** Fornecer a versão simplificada e otimizada do sistema, focada em acesso rápido a saldo e transações, conforme definido na arquitetura do MVP.
 
-## Get started
+---
 
-1. Install dependencies
+## 1. Stack e Tecnologias
 
-   ```bash
-   npm install
-   ```
+| Tecnologia | Função Principal |
+| :--- | :--- |
+| **Framework** | React Native (Expo) |
+| **Linguagem** | TypeScript / JavaScript |
+| **Navegação** | Expo Router |
+| **Estado Global** | Zustand (para autenticação e dados da Dashboard) |
+| **Estilização** | StyleSheet (simulação de Tailwind/Design System escuro) |
+| **HTTP Client** | Axios |
+| **Gráficos** | react-native-svg (Gráficos no Módulo Mercados) |
 
-2. Start the app
+---
 
-   ```bash
-   npx expo start
-   ```
+## 2. Requisitos e Funcionalidades (RFs)
 
-In the output, you'll find options to open the app in a
+O Mobile é responsável por cobrir os seguintes requisitos funcionais e entregar a interface do usuário (UI):
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+| Requisito | Funcionalidade | Status |
+| :--- | :--- | :--- |
+| **RF-02** | Autenticação (Login via JWT) | ✅ Implementado |
+| **RF-03** | Consulta de saldo (Total e por Carteira) | ✅ Implementado |
+| **RF-04** | Simulação de Depósito/Saque (BRL/Cripto) | ✅ Implementado |
+| **RF-06** | Exibição de ativos e gráficos de preços | ✅ Implementado |
+| **RF-09** | Histórico de Transações (Extrato) | ✅ Implementado |
+| **RF-08** | Visualização de Perfil (Dados pessoais) | ✅ Implementado |
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+> **Nota:** O fluxo de Trade (`RF-05`) e o Chatbot (`RF-07`) são centralizados nas interfaces Web e APIs específicas, conforme a regra de "versão simplificada" do Mobile.
 
-## Get a fresh project
+---
 
-When you're ready, run:
+## 3. Integração e Comunicação (REST/Síncrona)
 
-```bash
-npm run reset-project
-```
+O módulo Mobile se comunica **apenas com o GatewayAPI** via HTTP/REST, usando o token JWT para autenticação.
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+### Endpoints Principais Consumidos:
 
-## Learn more
+| Módulo | Endpoint (Gateway) | Uso no Mobile |
+| :--- | :--- | :--- |
+| **UserAPI** | `POST /user/login` | Login e obtenção do JWT. |
+| **WalletAPI** | `GET /wallet` | Busca lista de carteiras e saldos (Dashboard/Carteira). |
+| **WalletAPI** | `GET /wallet/history?userId={id}` | Busca histórico de transações. |
+| **WalletAPI** | `POST /wallet/deposit` | Simulação de entrada de fundos. |
+| **WalletAPI** | `POST /wallet/withdraw` | Simulação de saída de fundos. |
+| **CurrencyAPI**| `GET /currency` | Lista todas as moedas e seus históricos (Mercados). |
 
-To learn more about developing your project with Expo, look at the following resources:
+### Estratégia de Segurança
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+* O **Token JWT** é armazenado globalmente (Zustand Store) e re-injetado em todas as requisições autenticadas pelo **Axios Interceptor** (`src/services/api.ts`).
+* O App é configurado para rodar em Dark Mode com feedback customizado (Modals de Sucesso/Erro) para uma experiência coesa e profissional, tratando erros 400/401 de forma amigável ao usuário.
 
-## Join the community
+---
 
-Join our community of developers creating universal apps.
+## 4. Instruções de Execução Local
+* Para executar o módulo Mobile, certifique-se de que o Backend (GatewayAPI) está rodando primeiro e que você conhece o IP da sua máquina.
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+## 4.1 Inicialização do GatewayAPI
+* O GatewayAPI deve ser inicializado com o parâmetro --urls para garantir que ele esteja acessível na rede local, e não apenas no localhost. Isso é essencial para que o celular (ou emulador) consiga se conectar ao servidor.
+
+* Utilize o seguinte comando na pasta do seu projeto GatewayAPI/:
+
+Bash
+
+dotnet run --urls "http://0.0.0.0:5026"
+Explicação do Comando: O parâmetro 0.0.0.0 faz com que o servidor do .NET escute requisições em todas as interfaces de rede (Wi-Fi, Ethernet), permitindo que o dispositivo móvel se comunique usando o IP real da sua máquina (ex: 192.168.0.x).
+
+## 4.2 Configuração e Inicialização do Mobile
+* Configuração da API:
+
+Edite o arquivo mobile/src/services/api.ts.
+
+Substitua o IP na constante API_URL pelo endereço IP real da sua máquina, mantendo a porta do Gateway (ex: http://192.168.0.11:5026/api).
+
+Inicialização do Aplicativo:
+
+Bash
+
+cd mobile/
+npm install
+npx expo start ou npx expo start --clear(para limpeza de cache).
+Acesse o aplicativo escaneando o QR Code com o Expo Go.

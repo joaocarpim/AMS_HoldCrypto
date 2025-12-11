@@ -22,21 +22,35 @@ export const SwapWidget = () => {
     const [estimatedReceive, setEstimatedReceive] = useState<number>(0);
     const [isLoading, setIsLoading] = useState(false);
 
+    // Filtra apenas carteiras com saldo positivo
     const spendableWallets = useMemo(() => wallets.filter(w => Number(w.balance) > 0), [wallets]);
     
+    // Encontra a carteira selecionada
     const selectedWallet = useMemo(() => 
         wallets.find(w => w.id === Number(fromWalletId)), 
     [fromWalletId, wallets]);
+
+    // =================================================================================
+    // 🚨 CORREÇÃO: Auto-selecionar a primeira carteira disponível (BRL) ao carregar
+    // =================================================================================
+    useEffect(() => {
+        // Se ainda não selecionou nada, e tem carteiras com saldo...
+        if (!fromWalletId && spendableWallets.length > 0) {
+            // Tenta achar a de BRL primeiro, senão pega a primeira da lista
+            const brlWallet = spendableWallets.find(w => w.currencySymbol === 'BRL');
+            const defaultWallet = brlWallet || spendableWallets[0];
+            
+            setFromWalletId(defaultWallet.id);
+        }
+    }, [spendableWallets, fromWalletId]);
 
     const getPrice = useCallback((symbol: string) => {
         if (!symbol) return 0;
         if (symbol === 'BRL' || symbol === 'USD') return 1; 
         
         const currency = currencies.find(c => c.symbol === symbol);
-        // Pega o histórico mais recente
         if (!currency || !currency.histories || currency.histories.length === 0) return 0;
         
-        // Ordena por data decrescente
         const latest = currency.histories.reduce((prev, current) => 
             (new Date(prev.datetime) > new Date(current.datetime)) ? prev : current
         );
@@ -73,7 +87,6 @@ export const SwapWidget = () => {
 
     const handleMaxClick = () => {
         if (selectedWallet) {
-            // Usa o saldo exato sem arredondar para baixo excessivamente
             setAmountToSpend(selectedWallet.balance.toString());
         }
     };
@@ -157,6 +170,7 @@ export const SwapWidget = () => {
                                 className="bg-transparent text-2xl font-bold text-white placeholder-gray-700 w-full focus:outline-none font-mono"
                                 min="0"
                                 step="any"
+                                // AQUI ESTAVA O PROBLEMA: Agora fromWalletId será preenchido automaticamente
                                 disabled={isLoading || !fromWalletId}
                             />
                         </div>
