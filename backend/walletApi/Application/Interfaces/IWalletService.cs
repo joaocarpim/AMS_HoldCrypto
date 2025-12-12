@@ -1,4 +1,5 @@
 public interface IWalletService
+
 {
     IEnumerable<Wallet> GetUserWallets(int userId, WalletCategory? category = null);
     Wallet GetWallet(int id);
