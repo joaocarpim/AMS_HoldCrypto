@@ -23,7 +23,7 @@ namespace walletApi.Migrations
                         .HasColumnType("INTEGER");
 
                     b.Property<decimal>("Balance")
-                        .HasColumnType("TEXT");
+                        .HasColumnType("decimal(18,8)");
 
                     b.Property<int>("Category")
                         .HasColumnType("INTEGER");

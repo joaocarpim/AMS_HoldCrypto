@@ -57,8 +57,8 @@ namespace currencyApi.Migrations
                     b.Property<DateTime>("Datetime")
                         .HasColumnType("TEXT");
 
-                    b.Property<double>("Price")
-                        .HasColumnType("REAL");
+                    b.Property<decimal>("Price")
+                        .HasColumnType("TEXT");
 
                     b.HasKey("Id");
 

@@ -10,8 +10,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace currencyApi.Migrations
 {
     [DbContext(typeof(CurrencyDbContext))]
-    [Migration("20250617053248_UpdateCurrencyModel")]
-    partial class UpdateCurrencyModel
+    [Migration("20251212015648_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -60,8 +60,8 @@ namespace currencyApi.Migrations
                     b.Property<DateTime>("Datetime")
                         .HasColumnType("TEXT");
 
-                    b.Property<double>("Price")
-                        .HasColumnType("REAL");
+                    b.Property<decimal>("Price")
+                        .HasColumnType("TEXT");
 
                     b.HasKey("Id");
 
