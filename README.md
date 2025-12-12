@@ -35,4 +35,12 @@ Para o sistema funcionar, inicie os serviços nesta ordem:
 Consulte o `README.md` dentro de cada pasta para instruções detalhadas.
 
 ## 👥 Equipe
+
+Iran Camargo de Queiroz Junior
+Daniel Pereira Silva
+João Vitor Aparecido Carpim de Souza
+Kenui Engler de Oliveira Martins
+Gustavo Germano Lemos Pereira
+
 Projeto desenvolvido para a disciplina de Programação Multiplataforma / IA.
+
