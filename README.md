@@ -16,7 +16,7 @@ O sistema é composto por microserviços independentes que se comunicam via API 
 
 ## 🛠️ Tecnologias Principais
 
-- **Backend:** .NET 8 (C#), Entity Framework Core, SQLite.
+- **Backend:** .NET 9 (C#), Entity Framework Core, SQLite.
 - **AI/Chatbot:** Python, FastAPI, Regex.
 - **Frontend:** TypeScript, Tailwind CSS, Zustand, Recharts.
 - **Infra:** Swagger/OpenAPI, Clean Architecture.
