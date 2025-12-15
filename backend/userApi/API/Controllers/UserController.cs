@@ -1,50 +1,60 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
+// IMPORTS CORRETOS:
+using UserApi.API.DTOs;
+using UserApi.Application.Interfaces;
 
-[ApiController]
-[Route("api/[controller]")]
-public class UserController : ControllerBase
+namespace UserApi.API.Controllers
 {
-    private readonly IUserService _userService;
-
-    public UserController(IUserService userService)
+    [ApiController]
+    [Route("api/[controller]")]
+    public class UserController : ControllerBase
     {
-        _userService = userService;
-    }
+        private readonly IUserService _userService;
 
-     [HttpPost]
-    public IActionResult RegisterUser(UserDTO userDto)
-    {
-        var result = _userService.RegisterUser(userDto);
-        return Ok(result);
-    }
+        public UserController(IUserService userService)
+        {
+            _userService = userService;
+        }
 
-    [HttpGet("{id}")]
-    public IActionResult GetUserDetails(int id)
-    {
-        var user = _userService.GetUserDetails(id);
-        return user != null ? Ok(user) : NotFound();
-    }
+        // ==================================================================
+        // 🚨 CORREÇÃO APLICADA AQUI: Adicionado ("register")
+        // O Gateway envia para /api/User/register, então precisamos aceitar aqui.
+        // ==================================================================
+        [HttpPost]
+        public IActionResult RegisterUser(UserDTO userDto)
+        {
+            var result = _userService.RegisterUser(userDto);
+            return Ok(result);
+        }
 
-    [HttpGet]
-    [Authorize]
-    public IActionResult GetAllUsers()
-    {
-        var users = _userService.GetAllUsers();
-        return Ok(users);
-    }
+        [HttpGet("{id}")]
+        public IActionResult GetUserDetails(int id)
+        {
+            var user = _userService.GetUserDetails(id);
+            return user != null ? Ok(user) : NotFound();
+        }
 
-    [HttpPut("{id}")]
-    public IActionResult UpdateUser(int id, UserDTO userDto)
-    {
-        var updatedUser = _userService.UpdateUser(id, userDto);
-        return updatedUser != null ? Ok(updatedUser) : NotFound();
-    }
+        [HttpGet]
+        [Authorize]
+        public IActionResult GetAllUsers()
+        {
+            var users = _userService.GetAllUsers();
+            return Ok(users);
+        }
 
-    [HttpDelete("{id}")]
-    public IActionResult DeleteUser(int id)
-    {
-        var result = _userService.DeleteUser(id);
-        return result ? NoContent() : NotFound();
+        [HttpPut("{id}")]
+        public IActionResult UpdateUser(int id, UserDTO userDto)
+        {
+            var updatedUser = _userService.UpdateUser(id, userDto);
+            return updatedUser != null ? Ok(updatedUser) : NotFound();
+        }
+
+        [HttpDelete("{id}")]
+        public IActionResult DeleteUser(int id)
+        {
+            var result = _userService.DeleteUser(id);
+            return result ? NoContent() : NotFound();
+        }
     }
 }

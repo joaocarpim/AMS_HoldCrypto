@@ -1,0 +1,36 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --foreground-rgb: 255, 255, 255;
+  --background-start-rgb: 2, 6, 23; /* Slate 950 */
+  --background-end-rgb: 2, 6, 23;
+}
+
+body {
+  color: rgb(var(--foreground-rgb));
+  background: rgb(var(--background-start-rgb));
+  min-height: 100vh;
+}
+/* --- CORREÇÃO DE AUTOFILL (Fundo Branco/Letra Preta) --- */
+input:-webkit-autofill,
+input:-webkit-autofill:hover, 
+input:-webkit-autofill:focus, 
+input:-webkit-autofill:active {
+    -webkit-box-shadow: 0 0 0 30px #0b0f19 inset !important;
+    -webkit-text-fill-color: white !important;
+    caret-color: white !important;
+    transition: background-color 5000s ease-in-out 0s;
+}
+
+/* --- CORREÇÃO DO SELECT (Opções Brancas) --- */
+select {
+    color-scheme: dark; /* Força scrollbars e dropdowns nativos para modo escuro */
+}
+
+select option {
+    background-color: #0b0f19;
+    color: white;
+    padding: 10px;
+}

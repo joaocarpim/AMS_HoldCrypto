@@ -1,9 +1,19 @@
-public interface IUserRepository
+using System.Collections.Generic;
+using UserApi.Domain.Entities;
+
+namespace UserApi.Domain.Interfaces
 {
-     void Add(User user);
-    User? GetById(int id);
-    List<User> GetAll();
-    void Update(User user);
-    void Delete(int id);
-    User? GetByEmail(string email);
+    public interface IUserRepository
+    {
+        // Adicionamos '?' aqui para aceitar nulo
+        User? GetById(int id);
+        
+        // Adicionamos '?' aqui também
+        User? GetByEmail(string email);
+        
+        IEnumerable<User> GetAll();
+        void Add(User user);
+        void Update(User user);
+        void Delete(int id);
+    }
 }

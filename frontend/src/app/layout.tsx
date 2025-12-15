@@ -1,26 +1,28 @@
-import type { Metadata } from 'next';
-import { Inter } from 'next/font/google';
-import './styles/globals.css';
-import MuiProvider from './mui-provider';
+import type { Metadata } from "next";
+import { Inter } from "next/font/google";
+import "./globals.css";
+// IMPORTANTE: Trazendo o provedor de volta
+import { NotificationProvider } from "@/shared/context/NotificationContext"; 
 
-const inter = Inter({ subsets: ['latin'] });
+const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: 'AMS HoldCrypto',
-  description: 'Sua plataforma de criptomoedas',
+  title: "HoldCrypto",
+  description: "Plataforma de Trading de Criptomoedas",
 };
 
 export default function RootLayout({
   children,
-}: {
+}: Readonly<{
   children: React.ReactNode;
-}) {
+}>) {
   return (
     <html lang="pt-BR">
       <body className={inter.className}>
-        <MuiProvider>
+        {/* Envolvemos o app com o provedor de notificações */}
+        <NotificationProvider>
           {children}
-        </MuiProvider>
+        </NotificationProvider>
       </body>
     </html>
   );

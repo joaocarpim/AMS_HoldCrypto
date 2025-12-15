@@ -1,43 +1,32 @@
-import axios from "axios";
+import apiClient from "@/shared/api/apiClient";
+import { currencyAPI } from "@/shared/api/api";
 import { Currency } from "../types/Currency";
 
-const API_URL = "http://localhost:5105/api/currency";
+const currencyService = {
+  getAll: async (): Promise<Currency[]> => {
+    const response = await apiClient.get(currencyAPI.getAll());
+    return response.data;
+  },
 
-function getToken() {
-  return localStorage.getItem("token");
-}
+  getById: async (id: number): Promise<Currency> => {
+    const response = await apiClient.get(currencyAPI.getById(id));
+    return response.data;
+  },
 
-export const getAllCurrencies = () =>
-  axios.get<Currency[]>(API_URL, {
-    headers: {
-      Authorization: `Bearer ${getToken()}`
-    }
-  }).then(res => res.data);
+  create: async (currency: Omit<Currency, "id" | "histories">): Promise<Currency> => {
+    const response = await apiClient.post(currencyAPI.create(), currency);
+    return response.data;
+  },
 
-export const getCurrency = (id: number) =>
-  axios.get<Currency>(`${API_URL}/${id}`, {
-    headers: {
-      Authorization: `Bearer ${getToken()}`
-    }
-  }).then(res => res.data);
+  update: async (id: number, currency: Partial<Currency>): Promise<Currency> => {
+    const response = await apiClient.put(currencyAPI.update(id), currency);
+    return response.data;
+  },
 
-export const createCurrency = (currency: Omit<Currency, "id">) =>
-  axios.post<Currency>(API_URL, currency, {
-    headers: {
-      Authorization: `Bearer ${getToken()}`
-    }
-  }).then(res => res.data);
+  delete: async (id: number): Promise<void> => {
+    await apiClient.delete(currencyAPI.delete(id));
+  },
+};
 
-export const updateCurrency = (id: number, currency: Currency) =>
-  axios.put<Currency>(`${API_URL}/${id}`, currency, {
-    headers: {
-      Authorization: `Bearer ${getToken()}`
-    }
-  }).then(res => res.data);
+export default currencyService;
 
-export const deleteCurrency = (id: number) =>
-  axios.delete(`${API_URL}/${id}`, {
-    headers: {
-      Authorization: `Bearer ${getToken()}`
-    }
-  });

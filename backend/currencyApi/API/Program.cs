@@ -1,11 +1,10 @@
-using Microsoft.OpenApi.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
-using System.Text;
 using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// --- Configuração de CORS ---
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontEnd",
@@ -17,31 +16,33 @@ builder.Services.AddCors(options =>
         });
 });
 
-// Configuração de injeção de dependências
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        // Garante que Enums (BRL, USD) apareçam como texto no JSON
+        options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+    });
+
 builder.Services.AddEndpointsApiExplorer();
+
+// --- Configuração do Swagger ---
 builder.Services.AddSwaggerGen(options =>
 {
-    options.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo
+    options.SwaggerDoc("v1", new OpenApiInfo
     {
         Title = "Currency API",
         Version = "v1",
-        Description = "API para gerenciamento das moedas",
-        Contact = new Microsoft.OpenApi.Models.OpenApiContact
+        Description = "API de Cotações em Tempo Real e Histórico (Worker Service)",
+        Contact = new OpenApiContact
         {
             Name = "AMS_HoldCrypto",
-            Email = "null"
+            Email = "admin@holdcrypto.com"
         }
     });
 });
 
+// Injeção de Dependências (DB, Services, BackgroundWorker)
 builder.Services.AddApplicationServices();
-
-builder.Services.AddControllers()
-    .AddJsonOptions(options =>
-    {
-        options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
-    });
 
 var app = builder.Build();
 
@@ -57,5 +58,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseCors("AllowFrontEnd");
 app.UseHttpsRedirection();
+
 app.MapControllers();
+
 app.Run();

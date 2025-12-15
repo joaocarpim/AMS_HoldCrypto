@@ -2,11 +2,14 @@
 import React from "react";
 import clsx from "clsx";
 
+// 1. A interface de props agora inclui 'children' explicitamente.
 interface MainButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: "primary" | "secondary";
+  children: React.ReactNode; // Diz ao TypeScript que este componente recebe conteúdo.
 }
 
-const MainButton: React.FC<MainButtonProps> = ({ variant = "primary", className, ...props }) => {
+// 2. A função agora recebe 'children' e o renderiza dentro do botão.
+const MainButton: React.FC<MainButtonProps> = ({ variant = "primary", className, children, ...props }) => {
   return (
     <button
       className={clsx(
@@ -17,7 +20,9 @@ const MainButton: React.FC<MainButtonProps> = ({ variant = "primary", className,
         className
       )}
       {...props}
-    />
+    >
+      {children}
+    </button>
   );
 };
 
