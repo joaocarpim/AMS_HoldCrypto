@@ -1,0 +1,18 @@
+public interface IWalletRepository
+{
+    IEnumerable<Wallet> GetWalletsByUser(int userId, WalletCategory? category = null);
+    Wallet GetWalletById(int id);
+    Wallet CreateWallet(Wallet wallet);
+    bool UpdateWallet(Wallet wallet);
+    bool DeleteWallet(int id);
+
+    WalletTransaction CreateTransaction(WalletTransaction transaction);
+    bool Transfer(int fromWalletId, int toWalletId, decimal amount);
+
+    // *** NOVO MÉTODO (executa a troca atomicamente) ***
+    // (Retorna as duas carteiras atualizadas numa Tupla)
+    Tuple<Wallet, Wallet> ExecuteTrade(int fromWalletId, int toWalletId, decimal amountToSpend, decimal amountToReceive);
+
+    IEnumerable<WalletTransaction> GetTransactionsByUser(int userId);
+    
+}

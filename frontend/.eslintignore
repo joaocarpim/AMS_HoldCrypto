@@ -1,0 +1,7 @@
+postcss.config.js
+tailwind.config.ts
+next.config.mjs
+node_modules
+.next
+jest.config.js
+jest.setup.js

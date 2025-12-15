@@ -1,193 +1,121 @@
 'use client';
-import { useState } from "react";
-import Box from "@mui/material/Box";
-import Typography from "@mui/material/Typography";
-import ButtonGroup from "@mui/material/ButtonGroup";
-import Button from "@mui/material/Button";
-import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Legend } from "recharts";
-import { yellowBorderBox } from "@/shared/theme/boxStyles";
+import React, { useState } from 'react';
+import { Box, Typography, Button, useTheme, Paper, ButtonGroup } from '@mui/material';
+import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 
-// Tipagem para as moedas
-type PeriodKey = "dias" | "meses" | "anos";
-interface CoinData {
+// Tipagem para os dados do gráfico
+type PeriodKey = 'week' | 'month' | 'year';
+interface BalanceData {
   name: string;
-  symbol: string;
-  color: string;
-  data: Record<PeriodKey, { name: string; value: number }[]>;
+  Balance: number;
+  Income: number;
+  Outcome: number;
 }
 
-// Dados simulados para diferentes períodos
-const coins: CoinData[] = [
-  {
-    name: "Bitcoin",
-    symbol: "BTC",
-    color: "#fcd34d",
-    data: {
-      dias: [
-        { name: "Seg", value: 250000 },
-        { name: "Ter", value: 252000 },
-        { name: "Qua", value: 251000 },
-        { name: "Qui", value: 253000 },
-        { name: "Sex", value: 252500 },
-      ],
-      meses: [
-        { name: "Jan", value: 220000 },
-        { name: "Fev", value: 230000 },
-        { name: "Mar", value: 240000 },
-        { name: "Abr", value: 245000 },
-        { name: "Mai", value: 252500 },
-      ],
-      anos: [
-        { name: "2020", value: 40000 },
-        { name: "2021", value: 120000 },
-        { name: "2022", value: 180000 },
-        { name: "2023", value: 210000 },
-        { name: "2024", value: 252500 },
-      ],
-    },
-  },
-  {
-    name: "Ethereum",
-    symbol: "ETH",
-    color: "#a3e635",
-    data: {
-      dias: [
-        { name: "Seg", value: 13000 },
-        { name: "Ter", value: 13200 },
-        { name: "Qua", value: 13100 },
-        { name: "Qui", value: 13400 },
-        { name: "Sex", value: 13500 },
-      ],
-      meses: [
-        { name: "Jan", value: 11000 },
-        { name: "Fev", value: 11500 },
-        { name: "Mar", value: 12000 },
-        { name: "Abr", value: 12800 },
-        { name: "Mai", value: 13500 },
-      ],
-      anos: [
-        { name: "2020", value: 2000 },
-        { name: "2021", value: 4000 },
-        { name: "2022", value: 8000 },
-        { name: "2023", value: 11000 },
-        { name: "2024", value: 13500 },
-      ],
-    },
-  },
-  {
-    name: "BNB",
-    symbol: "BNB",
-    color: "#38bdf8",
-    data: {
-      dias: [
-        { name: "Seg", value: 2000 },
-        { name: "Ter", value: 2050 },
-        { name: "Qua", value: 2100 },
-        { name: "Qui", value: 2080 },
-        { name: "Sex", value: 2100 },
-      ],
-      meses: [
-        { name: "Jan", value: 1800 },
-        { name: "Fev", value: 1900 },
-        { name: "Mar", value: 1950 },
-        { name: "Abr", value: 2000 },
-        { name: "Mai", value: 2100 },
-      ],
-      anos: [
-        { name: "2020", value: 300 },
-        { name: "2021", value: 600 },
-        { name: "2022", value: 1200 },
-        { name: "2023", value: 1800 },
-        { name: "2024", value: 2100 },
-      ],
-    },
-  },
-];
+// Dados simulados para diferentes períodos, focados em balanço
+const chartData: Record<PeriodKey, BalanceData[]> = {
+  week: [
+    { name: 'Seg', Income: 400, Outcome: 240, Balance: 160 },
+    { name: 'Ter', Income: 300, Outcome: 139, Balance: 161 },
+    { name: 'Qua', Income: 200, Outcome: 980, Balance: -780 },
+    { name: 'Qui', Income: 278, Outcome: 390, Balance: -112 },
+    { name: 'Sex', Income: 189, Outcome: 480, Balance: -291 },
+  ],
+  month: [
+    { name: 'Sem 1', Income: 1400, Outcome: 400, Balance: 1000 },
+    { name: 'Sem 2', Income: 1500, Outcome: 1000, Balance: 500 },
+    { name: 'Sem 3', Income: 1200, Outcome: 1800, Balance: -600 },
+    { name: 'Sem 4', Income: 2000, Outcome: 500, Balance: 1500 },
+  ],
+  year: [
+    { name: 'Jan', Income: 4000, Outcome: 2400, Balance: 1600 },
+    { name: 'Fev', Income: 3000, Outcome: 1398, Balance: 1602 },
+    { name: 'Mar', Income: 2000, Outcome: 9800, Balance: -7800 },
+    { name: 'Abr', Income: 2780, Outcome: 3908, Balance: -1128 },
+    { name: 'Mai', Income: 1890, Outcome: 4800, Balance: -2910 },
+    { name: 'Jun', Income: 2390, Outcome: 3800, Balance: -1410 },
+  ],
+};
 
 const periods: { label: string; key: PeriodKey }[] = [
-  { label: "Dias", key: "dias" },
-  { label: "Meses", key: "meses" },
-  { label: "Anos", key: "anos" },
+  { label: "Semana", key: "week" },
+  { label: "Mês", key: "month" },
+  { label: "Ano", key: "year" },
 ];
 
 export default function ChartBox() {
-  const [selectedCoin, setSelectedCoin] = useState<number>(0);
-  const [selectedPeriod, setSelectedPeriod] = useState<PeriodKey>("anos");
-
-  const coin = coins[selectedCoin];
-  const data = coin.data[selectedPeriod];
+  const [selectedPeriod, setSelectedPeriod] = useState<PeriodKey>("year");
+  const theme = useTheme();
+  const data = chartData[selectedPeriod];
 
   return (
-    <Box
-      sx={{
-        ...yellowBorderBox,
-        minWidth: 340,
-        maxWidth: 600,
-        mb: { xs: 4, md: 0 },
-        height: { xs: 420, md: 480 },
-        display: "flex",
-        flexDirection: "column",
-      }}
+    <Paper 
+        sx={{ 
+            p: 3, 
+            bgcolor: 'background.paper', 
+            borderRadius: 4, 
+            height: '100%',
+            display: 'flex',
+            flexDirection: 'column'
+        }}
     >
-      <Typography variant="h6" color="primary" gutterBottom>
-        Gráfico de {coin.name}
-      </Typography>
-      <ButtonGroup variant="outlined" sx={{ mb: 2 }}>
-        {coins.map((c: CoinData, idx: number) => (
-          <Button
-            key={c.symbol}
-            onClick={() => setSelectedCoin(idx)}
-            sx={{
-              color: selectedCoin === idx ? "#18181b" : "#fcd34d",
-              background: selectedCoin === idx ? "#fcd34d" : "transparent",
-              borderColor: "#fcd34d",
-              "&:hover": {
-                background: "#ffe066",
-                color: "#18181b",
-              },
-            }}
-          >
-            {c.symbol}
-          </Button>
-        ))}
-      </ButtonGroup>
-      <ButtonGroup variant="text" sx={{ mb: 2, ml: 2 }}>
-        {periods.map((p) => (
-          <Button
-            key={p.key}
-            onClick={() => setSelectedPeriod(p.key)}
-            sx={{
-              color: selectedPeriod === p.key ? "#fcd34d" : "#fff",
-              fontWeight: selectedPeriod === p.key ? "bold" : "normal",
-              textDecoration: selectedPeriod === p.key ? "underline" : "none",
-            }}
-          >
-            {p.label}
-          </Button>
-        ))}
-      </ButtonGroup>
+      <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+        <Typography variant="h6" fontWeight="bold">
+          Overview
+        </Typography>
+        <ButtonGroup variant="outlined" size="small">
+            {periods.map((p) => (
+                <Button
+                    key={p.key}
+                    onClick={() => setSelectedPeriod(p.key)}
+                    sx={{
+                        color: selectedPeriod === p.key ? '#0B0B0B' : 'primary.main',
+                        backgroundColor: selectedPeriod === p.key ? 'primary.main' : 'transparent',
+                        borderColor: 'primary.main',
+                        '&:hover': {
+                            backgroundColor: 'primary.main',
+                            color: '#0B0B0B',
+                            opacity: 0.9
+                        }
+                    }}
+                >
+                    {p.label}
+                </Button>
+            ))}
+        </ButtonGroup>
+      </Box>
       <Box flex={1} minHeight={300}>
         <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={data} margin={{ top: 20, right: 30, left: 0, bottom: 0 }}>
-            <CartesianGrid stroke="#333" strokeDasharray="6 6" />
-            <XAxis dataKey="name" stroke="#fff" />
-            <YAxis stroke="#fff" />
+          <AreaChart data={data} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+             <defs>
+                <linearGradient id="colorBalance" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor={theme.palette.primary.main} stopOpacity={0.8}/>
+                <stop offset="95%" stopColor={theme.palette.primary.main} stopOpacity={0}/>
+                </linearGradient>
+            </defs>
+            <XAxis dataKey="name" stroke={theme.palette.text.secondary} fontSize={12} />
+            <YAxis stroke={theme.palette.text.secondary} fontSize={12} />
             <Tooltip
-              contentStyle={{ background: "#23272f", border: "none", color: "#fff" }}
-              labelStyle={{ color: "#fcd34d" }}
+              contentStyle={{ 
+                  backgroundColor: 'rgba(30, 30, 30, 0.8)', 
+                  borderColor: theme.palette.divider,
+                  borderRadius: theme.shape.borderRadius
+              }}
+              labelStyle={{ color: theme.palette.primary.main, fontWeight: 'bold' }}
             />
-            <Legend />
-            <Line
-              type="monotone"
-              dataKey="value"
-              stroke={coin.color}
-              strokeWidth={3}
-              dot={{ r: 5, fill: coin.color, stroke: "#18181b", strokeWidth: 2 }}
-              activeDot={{ r: 8 }}
+            <Legend wrapperStyle={{ fontSize: '14px' }} />
+            <Area 
+                type="monotone" 
+                dataKey="Balance" 
+                stroke={theme.palette.primary.main} 
+                strokeWidth={2}
+                fillOpacity={1} 
+                fill="url(#colorBalance)" 
             />
-          </LineChart>
+          </AreaChart>
         </ResponsiveContainer>
       </Box>
-    </Box>
+    </Paper>
   );
 }
+

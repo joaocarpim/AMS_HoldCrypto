@@ -1,9 +1,13 @@
 'use client';
-import React from "react";
-import Box from "@mui/material/Box";
-import Typography from "@mui/material/Typography";
-import { useTheme } from "@mui/material/styles";
+import React from 'react';
+import Box from '@mui/material/Box';
+import Typography from '@mui/material/Typography';
+import Container from '@mui/material/Container';
+import Grid from '@mui/material/Grid';
+import Paper from '@mui/material/Paper';
+import { useTheme } from '@mui/material/styles';
 
+// Mantendo seus dados de notícias originais
 const news = [
   {
     title: "Bitcoin atinge novo topo em 2025!",
@@ -24,41 +28,48 @@ const NewsSection: React.FC = () => {
   return (
     <Box
       sx={{
-        background: theme.palette.background.paper,
-        borderRadius: 2,
-        boxShadow: 3,
-        p: { xs: 2, sm: 4 },
-        my: 4,
-        width: "100%",
-        maxWidth: 950,
-        mx: "auto",
+        py: { xs: 6, md: 10 },
+        bgcolor: theme.palette.background.default, // Fundo principal escuro
       }}
       component="section"
     >
-      <Typography variant="h6" color="primary" fontWeight="bold" mb={2}>
-        Notícias Recentes
-      </Typography>
-      <Box component="ul" sx={{ p: 0, m: 0, listStyle: "none" }}>
-        {news.map((item, i) => (
-          <Box
-            key={i}
-            component="li"
-            sx={{
-              color: theme.palette.text.primary,
-              mb: 2,
-              background: theme.palette.background.default,
-              borderRadius: 1.5,
-              p: 2,
-              boxShadow: 1,
-              "& strong": { color: theme.palette.primary.main }
-            }}
-          >
-            <strong>{item.title}</strong> — {item.desc}
-          </Box>
-        ))}
-      </Box>
+      <Container maxWidth="lg">
+        <Typography 
+          variant="h3" 
+          component="h2" 
+          textAlign="center" 
+          fontWeight="bold" 
+          sx={{ mb: 6 }}
+        >
+          Fique por Dentro das <span style={{ color: theme.palette.primary.main }}>Últimas Notícias</span>
+        </Typography>
+        <Grid container spacing={4}>
+          {news.map((item, i) => (
+            <Grid item xs={12} md={4} key={i}>
+              <Paper
+                elevation={0}
+                sx={{
+                  p: 3,
+                  bgcolor: theme.palette.background.paper,
+                  border: `1px solid ${theme.palette.divider}`,
+                  borderRadius: 4,
+                  height: '100%',
+                }}
+              >
+                <Typography variant="h6" component="h3" fontWeight="bold" color="primary.main" gutterBottom>
+                  {item.title}
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  {item.desc}
+                </Typography>
+              </Paper>
+            </Grid>
+          ))}
+        </Grid>
+      </Container>
     </Box>
   );
 };
 
 export default NewsSection;
+
