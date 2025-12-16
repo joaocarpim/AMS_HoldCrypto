@@ -33,12 +33,12 @@ namespace UserApi.API.Controllers
 
             // O '!' diz que garantimos que password não é nulo aqui
             var user = _userService.ValidateUser(loginDto.Email, loginDto.Password!);
-            
-            if (user == null)
+
+                       if (user == null)
             {
                 return Unauthorized(new { message = "Email ou senha inválidos." });
             }
-
+            
             var token = GenerateJwtToken(user);
             
             return Ok(new { Token = token }); 

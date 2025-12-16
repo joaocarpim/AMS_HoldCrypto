@@ -32,7 +32,12 @@ Para o sistema funcionar, inicie os serviços nesta ordem:
 5. **GatewayAPI** (Porta 5026) - *Obrigatório para o Frontend*
 6. **Frontend Web** (Porta 3000)
 
-Consulte o `README.md` dentro de cada pasta para instruções detalhadas.
+Consulte o `README.md` dentro de cada pasta para instruções 
+detalhadas.
+
+ ## Video gravado com explicação e execução do projeto:
+
+--> https://drive.google.com/drive/folders/1I0eaZkoH2WtYHw_LNyuerK3k8XWKxNA3?usp=sharing
 
 ## 👥 Equipe
 
